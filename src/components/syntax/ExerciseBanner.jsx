@@ -11,8 +11,8 @@ export default function ExerciseBanner({ sentence, variables, exerciseNum, total
             {/* Progress indicator */}
             <div className="flex justify-between items-center mb-3">
                 <span
-                    className="text-xs tracking-widest text-[#00FF41]/60 uppercase"
-                    style={{ fontFamily: "'Orbitron', sans-serif" }}
+                    className="text-xs tracking-widest text-[#00FF41]/90 uppercase font-bold"
+                    style={{ fontFamily: "'Orbitron', sans-serif", textShadow: '0 0 6px rgba(0,255,65,0.4)' }}
                 >
                     Ejercicio {exerciseNum}/{totalExercises}
                 </span>
@@ -36,8 +36,8 @@ export default function ExerciseBanner({ sentence, variables, exerciseNum, total
                     boxShadow: '0 0 15px rgba(0,255,65,0.1)',
                 }}
             >
-                <p className="text-xs tracking-widest text-[#00FF41]/50 uppercase mb-2"
-                    style={{ fontFamily: "'Orbitron'" }}>
+                <p className="text-xs tracking-widest text-[#00FF41]/80 uppercase mb-2 font-bold"
+                    style={{ fontFamily: "'Orbitron'", textShadow: '0 0 6px rgba(0,255,65,0.4)' }}>
                     Traduce a fórmula:
                 </p>
                 <p className="text-xl md:text-2xl text-white leading-relaxed"

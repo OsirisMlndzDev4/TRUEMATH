@@ -6,13 +6,13 @@ export default function ConstructionZone({ tokens, onRemoveToken }) {
     return (
         <div className="w-full">
             <p
-                className="text-xs tracking-widest text-[#00FF41]/50 uppercase mb-3"
-                style={{ fontFamily: "'Orbitron'" }}
+                className="text-xs tracking-widest text-[#00FF41]/80 uppercase mb-3 font-bold"
+                style={{ fontFamily: "'Orbitron'", textShadow: '0 0 6px rgba(0,255,65,0.4)' }}
             >
                 Zona de Construcción
             </p>
             <div
-                className="min-h-[60px] flex items-center flex-wrap gap-2 p-4"
+                className="min-h-[60px] flex items-center flex-wrap gap-4 p-5"
                 style={{
                     background: 'rgba(0,255,65,0.03)',
                     border: '1px solid rgba(0,255,65,0.3)',
@@ -22,7 +22,9 @@ export default function ConstructionZone({ tokens, onRemoveToken }) {
                 <AnimatePresence mode="popLayout">
                     {tokens.map((token, index) => {
                         const isVar = VARIABLES.includes(token)
-                        const color = isVar ? '#00FFFF' : '#FF00FF'
+                        const textColor = isVar ? '#00FFFF' : '#FF00FF'
+                        const borderColor = isVar ? 'rgba(0,255,255,0.35)' : 'rgba(255,0,255,0.35)'
+                        const bgColor = isVar ? 'rgba(0,255,255,0.08)' : 'rgba(255,0,255,0.08)'
                         return (
                             <motion.button
                                 key={`${token}-${index}`}
@@ -31,13 +33,14 @@ export default function ConstructionZone({ tokens, onRemoveToken }) {
                                 exit={{ scale: 0, opacity: 0 }}
                                 layout
                                 onClick={() => onRemoveToken(index)}
-                                className="h-10 px-3 flex items-center justify-center text-lg font-bold cursor-pointer"
+                                className="h-12 min-w-[48px] px-6 flex items-center justify-center text-xl font-bold cursor-pointer"
                                 style={{
                                     fontFamily: "'Share Tech Mono', monospace",
-                                    background: `${color}10`,
-                                    border: `1px solid ${color}`,
-                                    color: color,
-                                    boxShadow: `0 0 6px ${color}40`,
+                                    background: bgColor,
+                                    border: `1px solid ${borderColor}`,
+                                    color: textColor,
+                                    textShadow: `0 0 8px ${textColor}60`,
+                                    boxShadow: `0 0 8px ${textColor}15`,
                                 }}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.9 }}

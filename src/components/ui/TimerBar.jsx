@@ -1,8 +1,17 @@
 import { motion } from 'framer-motion'
 
-export default function TimerBar({ timeLeft, maxTime = 20 }) {
+function formatTime(seconds) {
+    if (seconds >= 60) {
+        const mins = Math.floor(seconds / 60)
+        const secs = seconds % 60
+        return `${mins}:${secs.toString().padStart(2, '0')}`
+    }
+    return `${seconds}s`
+}
+
+export default function TimerBar({ timeLeft, maxTime = 60 }) {
     const pct = (timeLeft / maxTime) * 100
-    const isLow = timeLeft <= 5
+    const isLow = timeLeft <= 10
     const color = isLow ? '#FF0040' : '#FF00FF'
     const glowColor = isLow ? 'rgba(255,0,64,0.6)' : 'rgba(255,0,255,0.6)'
 
@@ -19,7 +28,7 @@ export default function TimerBar({ timeLeft, maxTime = 20 }) {
                     className="text-sm font-bold font-[Share_Tech_Mono]"
                     style={{ color, textShadow: `0 0 8px ${glowColor}` }}
                 >
-                    {timeLeft}s
+                    {formatTime(timeLeft)}
                 </span>
             </div>
             <div

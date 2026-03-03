@@ -11,6 +11,13 @@ import FormulaDisplay from './FormulaDisplay'
 import TruthTableGrid from './TruthTableGrid'
 import VerdictButtons from './VerdictButtons'
 
+// Progressive time limits: early questions get less time, later ones get more
+function getTimeLimit(exerciseIndex) {
+    if (exerciseIndex < 4) return 60    // Exercises 1-4: 60 seconds
+    if (exerciseIndex < 7) return 120   // Exercises 5-7: 2 minutes
+    return 150                          // Exercises 8-10: 2:30 minutes
+}
+
 export default function TruthMatrixGame() {
     const navigate = useNavigate()
     const { exercises, currentExerciseIndex, score, submitAnswer, nextExercise, gameFinished, timeLeft, setTimeLeft } = useGameStore()
@@ -20,6 +27,7 @@ export default function TruthMatrixGame() {
     const roundStartRef = useRef(Date.now())
 
     const exercise = exercises[currentExerciseIndex]
+    const maxTime = getTimeLimit(currentExerciseIndex)
 
     // Redirect to game over when finished
     useEffect(() => {
@@ -65,12 +73,12 @@ export default function TruthMatrixGame() {
     // Timer
     useEffect(() => {
         if (feedback || !exercise) return
-        setTimeLeft(20)
+        setTimeLeft(maxTime)
         roundStartRef.current = Date.now()
 
         timerRef.current = setInterval(() => {
             const elapsed = Math.floor((Date.now() - roundStartRef.current) / 1000)
-            const remaining = Math.max(0, 20 - elapsed)
+            const remaining = Math.max(0, maxTime - elapsed)
             setTimeLeft(remaining)
             if (remaining <= 0) {
                 clearInterval(timerRef.current)
@@ -79,7 +87,7 @@ export default function TruthMatrixGame() {
         }, 250)
 
         return () => clearInterval(timerRef.current)
-    }, [currentExerciseIndex, feedback, exercise, handleTimeout, setTimeLeft])
+    }, [currentExerciseIndex, feedback, exercise, handleTimeout, setTimeLeft, maxTime])
 
     // Early return AFTER all hooks
     if (gameFinished || !exercise) return null
@@ -101,8 +109,8 @@ export default function TruthMatrixGame() {
                     >
                         THE TRUTH MATRIX
                     </h2>
-                    <p className="text-xs text-[#FF00FF]/50 tracking-widest mt-1"
-                        style={{ fontFamily: "'Orbitron'" }}>
+                    <p className="text-xs text-[#FF00FF]/90 tracking-widest mt-1 font-bold"
+                        style={{ fontFamily: "'Orbitron'", textShadow: '0 0 6px rgba(255,0,255,0.4)' }}>
                         Ronda {currentExerciseIndex + 1} / {exercises.length}
                     </p>
                 </div>
@@ -111,7 +119,7 @@ export default function TruthMatrixGame() {
 
             <div className="w-full max-w-3xl flex flex-col gap-4">
                 {/* Timer */}
-                <TimerBar timeLeft={timeLeft} maxTime={20} />
+                <TimerBar timeLeft={timeLeft} maxTime={maxTime} />
 
                 {/* Formula */}
                 <HolographicCard color="magenta">

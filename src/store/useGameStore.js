@@ -7,7 +7,7 @@ const useGameStore = create((set, get) => ({
     score: 0,
     currentExerciseIndex: 0,
     exercises: [],
-    timeLeft: 20,
+    timeLeft: 60,
     totalExercises: 0,
     gameFinished: false,
 
@@ -19,7 +19,7 @@ const useGameStore = create((set, get) => ({
             currentExerciseIndex: 0,
             exercises,
             totalExercises: exercises.length,
-            timeLeft: 20,
+            timeLeft: 60,
             gameFinished: false,
         })
     },
@@ -37,7 +37,7 @@ const useGameStore = create((set, get) => ({
         } else {
             set({
                 currentExerciseIndex: currentExerciseIndex + 1,
-                timeLeft: 20,
+                timeLeft: 60,
             })
         }
     },
@@ -53,7 +53,7 @@ const useGameStore = create((set, get) => ({
             currentExerciseIndex: 0,
             exercises: [],
             totalExercises: 0,
-            timeLeft: 20,
+            timeLeft: 60,
             gameFinished: false,
         })
     },

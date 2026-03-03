@@ -19,8 +19,8 @@ export default function FormulaDisplay({ formulaDisplay }) {
     return (
         <div className="text-center">
             <p
-                className="text-xs tracking-widest text-[#FF00FF]/50 uppercase mb-3"
-                style={{ fontFamily: "'Orbitron'" }}
+                className="text-xs tracking-widest text-[#FF00FF]/90 uppercase mb-3 font-bold"
+                style={{ fontFamily: "'Orbitron'", textShadow: '0 0 6px rgba(255,0,255,0.4)' }}
             >
                 Fórmula
             </p>

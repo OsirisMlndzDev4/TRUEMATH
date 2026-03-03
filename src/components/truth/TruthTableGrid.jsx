@@ -29,9 +29,9 @@ export default function TruthTableGrid({ exercise, revealAll = false }) {
     }, [exercise.id, revealAll, table.length])
 
     return (
-        <div className="w-full overflow-x-auto">
+        <div className="w-full overflow-hidden">
             <div
-                className="scanline-overlay inline-block min-w-full"
+                className="scanline-overlay block w-full"
                 style={{
                     background: '#0A0A2E',
                     border: '1px solid rgba(255,0,255,0.3)',

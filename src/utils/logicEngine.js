@@ -26,12 +26,13 @@ export const getGrade = (score) => {
 
 /**
  * Calculate truth matrix score based on time taken.
+ * Adjusted for progressive time limits (60s / 120s / 150s).
  * @param {number} elapsed - seconds since round started
  * @returns {number} points
  */
 export const calculateTimeScore = (elapsed) => {
-    if (elapsed <= 8) return 150
-    if (elapsed <= 15) return 100
-    if (elapsed <= 20) return 50
-    return 0
+    if (elapsed <= 15) return 150
+    if (elapsed <= 45) return 100
+    if (elapsed <= 90) return 50
+    return 25
 }

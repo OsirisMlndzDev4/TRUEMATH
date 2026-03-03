@@ -9,8 +9,8 @@ export default function SymbolPalette({ onAddToken, availableVars = ['p', 'q'] }
     return (
         <div className="w-full">
             <p
-                className="text-xs tracking-widest text-[#00FFFF]/50 uppercase mb-3"
-                style={{ fontFamily: "'Orbitron'" }}
+                className="text-xs tracking-widest text-[#00FFFF]/90 uppercase mb-3 font-bold"
+                style={{ fontFamily: "'Orbitron'", textShadow: '0 0 6px rgba(0,255,255,0.4)' }}
             >
                 Paleta de Símbolos
             </p>
