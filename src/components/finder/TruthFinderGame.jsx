@@ -22,9 +22,45 @@ import './TruthFinderGame.css'
    CONSTANTES
    ══════════════════════════════════════════ */
 const MAX_ALERT = 5              // errores máximos antes de reiniciar
+// ⚠️ DEV_MODE — Poner en false para producción. Buscar 'DEV_MODE' para eliminar.
+const DEV_MODE = true
 const POINTS_PER_CELL = 10       // puntos por celda correcta
 const POINTS_CLASSIFY = 50       // puntos por clasificar bien
 const LEVEL_BONUS = 100          // bonus por completar nivel
+
+// Tiempo límite por dificultad (segundos)
+const DIFFICULTY_TIMES = {
+    'BÁSICO': 30,
+    'INTERMEDIO': 150,   // 2:30
+    'AVANZADO': 210,     // 3:30
+    'EXPERTO': 300,      // 5:00
+}
+
+/* ══════════════════════════════════════════
+   SUB-COMPONENTE: Timer de Hackeo
+   ══════════════════════════════════════════ */
+function HackerTimer({ timeLeft, maxTime }) {
+    const mins = Math.floor(timeLeft / 60)
+    const secs = timeLeft % 60
+    const pct = maxTime > 0 ? (timeLeft / maxTime) * 100 : 100
+    const isUrgent = pct <= 20       // último 20% del tiempo
+    const isCritical = pct <= 7      // último 7% del tiempo
+
+    return (
+        <div className={`tf-timer ${isUrgent ? 'urgent' : ''} ${isCritical ? 'critical' : ''}`}>
+            <div className="tf-timer-label">⏱ TIEMPO ANTES DE DETECCIÓN</div>
+            <div className="tf-timer-bar">
+                <div
+                    className="tf-timer-bar-fill"
+                    style={{ width: `${pct}%` }}
+                />
+            </div>
+            <div className="tf-timer-value">
+                {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+            </div>
+        </div>
+    )
+}
 
 /* ══════════════════════════════════════════
    SUB-COMPONENTE: Manual del Hacker
@@ -116,10 +152,21 @@ function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels }) {
     const activeStart = formulaStr.indexOf(activeSegmentLabel)
     const activeEnd = activeStart >= 0 ? activeStart + activeSegmentLabel.length : -1
 
+    // Escalar tamaño de fuente proporcionalmente a la longitud de la fórmula
+    const len = formulaStr.length
+    const dynamicFontSize = len <= 10 ? 2.2
+        : len <= 15 ? 1.8
+            : len <= 20 ? 1.5
+                : len <= 25 ? 1.3
+                    : 1.1
+
     return (
         <div className="tf-formula-panel">
             <div className="tf-formula-label">⌐ Mensaje Bloqueado</div>
-            <div className="tf-formula-text">
+            <div
+                className="tf-formula-text"
+                style={{ fontSize: `${dynamicFontSize}rem`, whiteSpace: 'nowrap' }}
+            >
                 {chars.map((char, i) => {
                     let cls = 'tf-formula-char'
                     // Verificar si el carácter está dentro de un segmento resuelto
@@ -475,6 +522,10 @@ export default function TruthFinderGame() {
     const [accumulatedTable, setAccumulatedTable] = useState(null)
     const [revealingSegLabel, setRevealingSegLabel] = useState('')
 
+    // ── Timer ──
+    const [timeLeft, setTimeLeft] = useState(0)
+    const [maxTime, setMaxTime] = useState(0)
+
     // Referencia al segmento actual pre-calculado
     const tableDataRef = useRef(null)
 
@@ -537,6 +588,10 @@ export default function TruthFinderGame() {
         setPlayerAnswers({})
         setAlertLevel(0)
         setClassifyResult(null)
+        // Inicializar timer según dificultad
+        const seconds = DIFFICULTY_TIMES[level?.difficulty] || 60
+        setTimeLeft(seconds)
+        setMaxTime(seconds)
         // Inicializar tabla acumulada con las variables base
         if (level) {
             const combos = generateCombinations(level.variables)
@@ -642,6 +697,25 @@ export default function TruthFinderGame() {
             }, 2500)
             return () => clearTimeout(timer)
         }
+    }, [gamePhase])
+
+    /** Timer countdown */
+    useEffect(() => {
+        // Solo correr durante playing y classify
+        if (gamePhase !== 'playing' && gamePhase !== 'classify') return
+
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval)
+                    setGamePhase('glitch')
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
+
+        return () => clearInterval(interval)
     }, [gamePhase])
 
     /** Glitch reset */
@@ -789,6 +863,32 @@ export default function TruthFinderGame() {
                     </p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
+                    {/* ⚠️ DEV_MODE — Eliminar este bloque para producción */}
+                    {DEV_MODE && (
+                        <button
+                            onClick={() => {
+                                if (currentLevelIdx + 1 < finderLevels.length) {
+                                    setCurrentLevelIdx(prev => prev + 1)
+                                    setGamePhase('intro')
+                                    setClassifyResult(null)
+                                    setAccumulatedTable(null)
+                                }
+                            }}
+                            style={{
+                                background: 'rgba(255,200,0,0.15)',
+                                border: '1px solid rgba(255,200,0,0.4)',
+                                color: '#FFC800',
+                                fontFamily: "'Orbitron'",
+                                fontSize: '0.6rem',
+                                padding: '0.3rem 0.75rem',
+                                cursor: 'pointer',
+                                marginBottom: '0.25rem',
+                                letterSpacing: '0.1em',
+                            }}
+                        >
+                            DEV: SKIP LEVEL →
+                        </button>
+                    )}
                     <div className="tf-score-label">SCORE</div>
                     <div className="tf-score">{score}</div>
                 </div>
@@ -912,6 +1012,9 @@ export default function TruthFinderGame() {
                     <div className="tf-center">
                         {/* Alert bar */}
                         <AlertBar current={alertLevel} max={MAX_ALERT} />
+
+                        {/* Timer */}
+                        <HackerTimer timeLeft={timeLeft} maxTime={maxTime} />
 
                         {/* Fórmula */}
                         <FormulaPanel

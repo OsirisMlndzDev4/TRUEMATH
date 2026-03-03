@@ -259,6 +259,105 @@
     z-index: 2;
 }
 
+/* ─── TIMER DE HACKEO ─── */
+.tf-timer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    background: rgba(10, 10, 46, 0.7);
+    transition: all 0.3s ease;
+}
+
+.tf-timer.urgent {
+    border-color: rgba(255, 200, 0, 0.5);
+}
+
+.tf-timer.critical {
+    border-color: rgba(255, 0, 64, 0.6);
+    animation: timer-flash 0.8s ease-in-out infinite;
+}
+
+@keyframes timer-flash {
+
+    0%,
+    100% {
+        background: rgba(10, 10, 46, 0.7);
+    }
+
+    50% {
+        background: rgba(255, 0, 64, 0.1);
+    }
+}
+
+.tf-timer-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--color-cyan);
+    text-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+.tf-timer.urgent .tf-timer-label {
+    color: #FFC800;
+    text-shadow: 0 0 6px rgba(255, 200, 0, 0.5);
+}
+
+.tf-timer.critical .tf-timer-label {
+    color: var(--color-red);
+    text-shadow: 0 0 6px rgba(255, 0, 64, 0.5);
+}
+
+.tf-timer-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    overflow: hidden;
+}
+
+.tf-timer-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-cyan), var(--color-verde));
+    transition: width 1s linear;
+    box-shadow: 0 0 6px rgba(0, 255, 255, 0.5);
+}
+
+.tf-timer.urgent .tf-timer-bar-fill {
+    background: linear-gradient(90deg, #FFC800, #FF8C00);
+    box-shadow: 0 0 6px rgba(255, 200, 0, 0.5);
+}
+
+.tf-timer.critical .tf-timer-bar-fill {
+    background: linear-gradient(90deg, var(--color-red), #FF4060);
+    box-shadow: 0 0 8px rgba(255, 0, 64, 0.6);
+}
+
+.tf-timer-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--color-cyan);
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+    letter-spacing: 0.1em;
+    min-width: 3.5rem;
+    text-align: right;
+}
+
+.tf-timer.urgent .tf-timer-value {
+    color: #FFC800;
+    text-shadow: 0 0 10px rgba(255, 200, 0, 0.6);
+}
+
+.tf-timer.critical .tf-timer-value {
+    color: var(--color-red);
+    text-shadow: 0 0 10px rgba(255, 0, 64, 0.6);
+}
+
 /* ─── MINI TABLA DE VERDAD ─── */
 .tf-table-panel {
     background: linear-gradient(135deg, #0A0A2E 0%, #0D0D35 50%, #0A0A2E 100%);
