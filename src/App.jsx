@@ -5,6 +5,7 @@ import GameOverScreen from './screens/GameOverScreen'
 import LeaderboardScreen from './screens/LeaderboardScreen'
 import SyntaxNodeGame from './components/syntax/SyntaxNodeGame'
 import TruthMatrixGame from './components/truth/TruthMatrixGame'
+import TruthFinderGame from './components/finder/TruthFinderGame'
 
 export default function App() {
   const location = useLocation()
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/" element={<HomeScreen />} />
         <Route path="/syntax" element={<SyntaxNodeGame />} />
         <Route path="/truth" element={<TruthMatrixGame />} />
+        <Route path="/finder" element={<TruthFinderGame />} />
         <Route path="/gameover" element={<GameOverScreen />} />
         <Route path="/leaderboard" element={<LeaderboardScreen />} />
       </Routes>

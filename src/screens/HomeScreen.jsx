@@ -65,7 +65,9 @@ export default function HomeScreen() {
 
     const handleModule = (module) => {
         startGame(module)
-        navigate(module === 'syntax' ? '/syntax' : '/truth')
+        if (module === 'syntax') navigate('/syntax')
+        else if (module === 'finder') navigate('/finder')
+        else navigate('/truth')
     }
 
     return (
@@ -134,6 +136,18 @@ export default function HomeScreen() {
                         <div className="flex flex-col items-center gap-1">
                             <span className="text-xs tracking-widest opacity-70">MÓDULO 2</span>
                             <span>THE TRUTH MATRIX</span>
+                        </div>
+                    </NeonButton>
+
+                    <NeonButton
+                        color="cyan"
+                        size="xl"
+                        onClick={() => handleModule('finder')}
+                        className="w-full text-center"
+                    >
+                        <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs tracking-widest opacity-70">MÓDULO 3</span>
+                            <span>TRUTH FINDER</span>
                         </div>
                     </NeonButton>
                 </motion.div>
