@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getScores, getAllScores, clearScores } from '../utils/leaderboard'
@@ -7,6 +7,7 @@ import NeonButton from '../components/ui/NeonButton'
 const TABS = [
     { key: 'syntax', label: 'SYNTAX NODE', color: '#00FF41' },
     { key: 'truth', label: 'TRUTH MATRIX', color: '#FF00FF' },
+    { key: 'finder', label: 'TRUTH FINDER', color: '#FFD700' },
     { key: 'all', label: 'ALL TIME', color: '#00FFFF' },
 ]
 
@@ -19,18 +20,34 @@ const RANK_COLORS = {
 const MODULE_LABELS = {
     syntax: 'SYNTAX',
     truth: 'TRUTH',
+    finder: 'FINDER',
 }
 
 export default function LeaderboardScreen() {
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState('syntax')
     const [showConfirm, setShowConfirm] = useState(false)
+    const [scores, setScores] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    const scores = activeTab === 'all' ? getAllScores() : getScores(activeTab)
+    // Cargar puntuaciones desde Supabase cada vez que cambia el tab
+    useEffect(() => {
+        const fetchScores = async () => {
+            setLoading(true)
+            const data = activeTab === 'all'
+                ? await getAllScores()
+                : await getScores(activeTab)
+            setScores(data)
+            setLoading(false)
+        }
+        fetchScores()
+    }, [activeTab])
+
     const top10 = scores.slice(0, 10)
 
-    const handleClear = () => {
-        clearScores(activeTab === 'all' ? 'all' : activeTab)
+    const handleClear = async () => {
+        await clearScores(activeTab === 'all' ? 'all' : activeTab)
+        setScores([])
         setShowConfirm(false)
     }
 
@@ -107,7 +124,11 @@ export default function LeaderboardScreen() {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
                         >
-                            {top10.length === 0 ? (
+                            {loading ? (
+                                <div className="px-4 py-8 text-center text-[#00FFFF]/50 text-sm">
+                                    Cargando puntuaciones...
+                                </div>
+                            ) : top10.length === 0 ? (
                                 <div className="px-4 py-8 text-center text-white/30 text-sm">
                                     No hay puntuaciones aún
                                 </div>
@@ -115,9 +136,12 @@ export default function LeaderboardScreen() {
                                 top10.map((entry, i) => {
                                     const rank = i + 1
                                     const rankStyle = RANK_COLORS[rank]
+                                    const dateLabel = entry.created_at
+                                        ? new Date(entry.created_at).toLocaleDateString('es-LA')
+                                        : entry.date || '—'
                                     return (
                                         <motion.div
-                                            key={`${entry.name}-${entry.score}-${i}`}
+                                            key={entry.id || `${entry.name}-${entry.score}-${i}`}
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: i * 0.05 }}
@@ -138,7 +162,7 @@ export default function LeaderboardScreen() {
                                                     {MODULE_LABELS[entry.module] || entry.module}
                                                 </span>
                                             )}
-                                            <span className="text-right text-xs opacity-50">{entry.date || '—'}</span>
+                                            <span className="text-right text-xs opacity-50">{dateLabel}</span>
                                         </motion.div>
                                     )
                                 })

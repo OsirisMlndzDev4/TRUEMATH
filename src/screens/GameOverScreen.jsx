@@ -32,10 +32,9 @@ export default function GameOverScreen() {
         return () => clearInterval(interval)
     }, [score])
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!playerName.trim()) return
-        const moduleKey = currentModule === 'syntax' ? 'syntax' : 'truth'
-        saveScore(moduleKey, {
+        await saveScore(currentModule, {
             name: playerName.trim().toUpperCase(),
             score,
         })
@@ -43,9 +42,11 @@ export default function GameOverScreen() {
         setTimeout(() => navigate('/leaderboard'), 800)
     }
 
+    const MODULE_ROUTES = { syntax: '/syntax', truth: '/truth', finder: '/finder' }
+
     const handlePlayAgain = () => {
         startGame(currentModule)
-        navigate(currentModule === 'syntax' ? '/syntax' : '/truth')
+        navigate(MODULE_ROUTES[currentModule] || '/')
     }
 
     const handleHome = () => {

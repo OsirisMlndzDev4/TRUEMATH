@@ -1,35 +1,79 @@
-const STORAGE_PREFIX = 'truemath_'
+import { supabase } from './supabase'
 
-export const getScores = (module) => {
-    try {
-        return JSON.parse(localStorage.getItem(`${STORAGE_PREFIX}${module}`) || '[]')
-    } catch {
+/**
+ * Obtener puntuaciones por módulo.
+ * @param {string} module - 'syntax' | 'truth' | 'finder'
+ * @returns {Promise<Array>}
+ */
+export const getScores = async (module) => {
+    const { data, error } = await supabase
+        .from('scores')
+        .select('*')
+        .eq('module', module)
+        .order('score', { ascending: false })
+        .limit(50)
+
+    if (error) {
+        console.error('Error fetching scores:', error)
         return []
+    }
+    return data
+}
+
+/**
+ * Guardar una puntuación.
+ * @param {string} module - 'syntax' | 'truth' | 'finder'
+ * @param {{ name: string, score: number }} entry
+ */
+export const saveScore = async (module, entry) => {
+    const { error } = await supabase
+        .from('scores')
+        .insert({
+            name: entry.name,
+            score: entry.score,
+            module,
+        })
+
+    if (error) {
+        console.error('Error saving score:', error)
     }
 }
 
-export const saveScore = (module, entry) => {
-    const scores = getScores(module)
-    scores.push({
-        ...entry,
-        date: new Date().toLocaleDateString('es-LA'),
-        module,
-    })
-    scores.sort((a, b) => b.score - a.score)
-    localStorage.setItem(`${STORAGE_PREFIX}${module}`, JSON.stringify(scores.slice(0, 50)))
+/**
+ * Obtener todas las puntuaciones (todos los módulos).
+ * @returns {Promise<Array>}
+ */
+export const getAllScores = async () => {
+    const { data, error } = await supabase
+        .from('scores')
+        .select('*')
+        .order('score', { ascending: false })
+        .limit(50)
+
+    if (error) {
+        console.error('Error fetching all scores:', error)
+        return []
+    }
+    return data
 }
 
-export const getAllScores = () => {
-    const syntax = getScores('syntax').map((s) => ({ ...s, module: 'syntax' }))
-    const truth = getScores('truth').map((s) => ({ ...s, module: 'truth' }))
-    return [...syntax, ...truth].sort((a, b) => b.score - a.score)
-}
+/**
+ * Limpiar puntuaciones.
+ * @param {string} module - 'syntax' | 'truth' | 'finder' | 'all'
+ */
+export const clearScores = async (module) => {
+    let query
 
-export const clearScores = (module) => {
     if (module === 'all') {
-        localStorage.removeItem(`${STORAGE_PREFIX}syntax`)
-        localStorage.removeItem(`${STORAGE_PREFIX}truth`)
+        // Borrar todo — Supabase .delete() requiere un filtro,
+        // así que usamos un filtro que siempre es verdadero.
+        query = supabase.from('scores').delete().gte('id', '00000000-0000-0000-0000-000000000000')
     } else {
-        localStorage.removeItem(`${STORAGE_PREFIX}${module}`)
+        query = supabase.from('scores').delete().eq('module', module)
+    }
+
+    const { error } = await query
+    if (error) {
+        console.error('Error clearing scores:', error)
     }
 }

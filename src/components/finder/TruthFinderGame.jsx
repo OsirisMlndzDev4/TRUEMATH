@@ -16,6 +16,7 @@ import {
     classifyFormula,
     boolToChip,
 } from '../../utils/truthFinderEngine'
+import { saveScore } from '../../utils/leaderboard'
 import './TruthFinderGame.css'
 
 /* ══════════════════════════════════════════
@@ -515,6 +516,8 @@ export default function TruthFinderGame() {
     const [score, setScore] = useState(0)
     const [manualOpen, setManualOpen] = useState(false)
     const [classifyResult, setClassifyResult] = useState(null)  // null | 'correct' | 'incorrect'
+    const [playerName, setPlayerName] = useState('')
+    const [saved, setSaved] = useState(false)
 
     // ── Tabla acumulada progresiva ──
     // { columns: string[], rows: boolean[][] }
@@ -788,6 +791,17 @@ export default function TruthFinderGame() {
         )
     }
 
+    // ── Handler para guardar puntuación ──
+    const handleSaveScore = async () => {
+        if (!playerName.trim()) return
+        await saveScore('finder', {
+            name: playerName.trim().toUpperCase(),
+            score,
+        })
+        setSaved(true)
+        setTimeout(() => navigate('/leaderboard'), 800)
+    }
+
     // ── All Complete ──
     if (gamePhase === 'allComplete') {
         return (
@@ -819,12 +833,79 @@ export default function TruthFinderGame() {
                         }}>
                             TODOS LOS MENSAJES DESENCRIPTADOS
                         </p>
-                        <div className="tf-score" style={{ fontSize: '2rem', color: '#FFD700', marginBottom: '2rem' }}>
+                        <div className="tf-score" style={{ fontSize: '2rem', color: '#FFD700', marginBottom: '1.5rem' }}>
                             {score} PTS
                         </div>
-                        <button className="tf-neon-btn cyan" onClick={handleExit}>
-                            VOLVER AL HUB
-                        </button>
+
+                        {/* Guardar puntuación */}
+                        {!saved ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                <p style={{
+                                    fontSize: '0.6rem',
+                                    letterSpacing: '0.15em',
+                                    color: 'rgba(0,255,255,0.5)',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Ingresa tu nombre para el leaderboard
+                                </p>
+                                <input
+                                    type="text"
+                                    maxLength={12}
+                                    value={playerName}
+                                    onChange={(e) => setPlayerName(e.target.value)}
+                                    placeholder="TU NOMBRE..."
+                                    className="tf-name-input"
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSaveScore()}
+                                    style={{
+                                        width: '100%',
+                                        maxWidth: '16rem',
+                                        padding: '0.6rem 1rem',
+                                        textAlign: 'center',
+                                        fontSize: '0.9rem',
+                                        letterSpacing: '0.15em',
+                                        textTransform: 'uppercase',
+                                        background: 'transparent',
+                                        color: '#00FFFF',
+                                        border: '2px solid #00FFFF',
+                                        boxShadow: '0 0 10px rgba(0,255,255,0.3), inset 0 0 10px rgba(0,255,255,0.05)',
+                                        fontFamily: "'Share Tech Mono', monospace",
+                                        outline: 'none',
+                                    }}
+                                />
+                                <button
+                                    className="tf-neon-btn cyan"
+                                    onClick={handleSaveScore}
+                                    disabled={!playerName.trim()}
+                                    style={{ opacity: playerName.trim() ? 1 : 0.4 }}
+                                >
+                                    GUARDAR PUNTUACIÓN
+                                </button>
+                            </div>
+                        ) : (
+                            <motion.p
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                style={{
+                                    color: 'var(--color-verde)',
+                                    fontSize: '1rem',
+                                    fontWeight: 'bold',
+                                    fontFamily: "'Orbitron', sans-serif",
+                                    textShadow: '0 0 10px rgba(0,255,65,0.6)',
+                                    marginBottom: '1.5rem',
+                                }}
+                            >
+                                ✓ GUARDADO
+                            </motion.p>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button className="tf-neon-btn cyan" onClick={handleExit}>
+                                VOLVER AL HUB
+                            </button>
+                            <button className="tf-neon-btn sm magenta" onClick={() => navigate('/leaderboard')}>
+                                LEADERBOARD
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
             </motion.div>
