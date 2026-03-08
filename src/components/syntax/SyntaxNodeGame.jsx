@@ -11,6 +11,8 @@ import SymbolPalette from './SymbolPalette'
 import ConstructionZone from './ConstructionZone'
 
 const MAX_TIME = 60 // seconds per exercise
+// ⚠️ DEV_MODE — Poner en false para producción. Buscar 'DEV_MODE' para eliminar.
+const DEV_MODE = true
 
 // ── Hint generator — gives clues without revealing the answer ──
 const CONNECTOR_NAMES = {
@@ -172,6 +174,11 @@ export default function SyntaxNodeGame() {
     const timerPct = timeLeft / MAX_TIME
     const timerColor = timerPct > 0.5 ? '#00FF41' : timerPct > 0.2 ? '#FFD700' : '#FF0040'
 
+    const DIFFICULTY_LABELS = { easy: 'FÁCIL', medium: 'INTERMEDIO', hard: 'DIFÍCIL' }
+    const DIFFICULTY_COLORS = { easy: '#00FF41', medium: '#FFD700', hard: '#FF0040' }
+    const diffLabel = DIFFICULTY_LABELS[exercise.difficulty] || exercise.difficulty
+    const diffColor = DIFFICULTY_COLORS[exercise.difficulty] || '#00FFFF'
+
     return (
         <motion.div
             className="min-h-screen py-6 px-4 flex flex-col items-center"
@@ -182,13 +189,50 @@ export default function SyntaxNodeGame() {
         >
             {/* Header */}
             <div className="w-full max-w-2xl flex justify-between items-center mb-6">
-                <h2
-                    className="text-2xl md:text-3xl font-black text-[#00FF41] text-glow-verde"
-                    style={{ fontFamily: "'Orbitron', sans-serif" }}
-                >
-                    SYNTAX NODE
-                </h2>
+                <div>
+                    <h2
+                        className="text-2xl md:text-3xl font-black text-[#00FF41] text-glow-verde"
+                        style={{ fontFamily: "'Orbitron', sans-serif" }}
+                    >
+                        SYNTAX NODE
+                    </h2>
+                    <p style={{
+                        fontFamily: "'Orbitron'",
+                        fontSize: '0.55rem',
+                        letterSpacing: '0.25em',
+                        color: 'rgba(0,255,65,0.5)',
+                        marginTop: '0.25rem',
+                    }}>
+                        Ejercicio {currentExerciseIndex + 1} / {exercises.length}
+                        {' — '}
+                        <span style={{ color: diffColor, textShadow: `0 0 8px ${diffColor}40` }}>
+                            {diffLabel}
+                        </span>
+                    </p>
+                </div>
                 <div className="flex items-center gap-6">
+                    {/* ⚠️ DEV_MODE — Eliminar este bloque para producción */}
+                    {DEV_MODE && (
+                        <button
+                            onClick={() => {
+                                setFeedback(null)
+                                setTokens([])
+                                nextExercise()
+                            }}
+                            style={{
+                                background: 'rgba(255,200,0,0.15)',
+                                border: '1px solid rgba(255,200,0,0.4)',
+                                color: '#FFC800',
+                                fontFamily: "'Orbitron'",
+                                fontSize: '0.6rem',
+                                padding: '0.3rem 0.75rem',
+                                cursor: 'pointer',
+                                letterSpacing: '0.1em',
+                            }}
+                        >
+                            DEV: SKIP →
+                        </button>
+                    )}
                     {/* Timer */}
                     <div className="flex flex-col items-center gap-1">
                         <span
