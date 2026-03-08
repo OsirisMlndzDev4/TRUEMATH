@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import useGameStore from '../store/useGameStore'
 import { getGrade } from '../utils/logicEngine'
-import { saveScore } from '../utils/leaderboard'
+import { saveScore, checkNameExists } from '../utils/leaderboard'
 import NeonButton from '../components/ui/NeonButton'
 
 export default function GameOverScreen() {
@@ -12,6 +12,7 @@ export default function GameOverScreen() {
     const [playerName, setPlayerName] = useState('')
     const [saved, setSaved] = useState(false)
     const [displayScore, setDisplayScore] = useState(0)
+    const [nameError, setNameError] = useState('')
 
     const grade = getGrade(score)
 
@@ -34,15 +35,22 @@ export default function GameOverScreen() {
 
     const handleSave = async () => {
         if (!playerName.trim()) return
+        const upperName = playerName.trim().toUpperCase()
+        const exists = await checkNameExists(currentModule, upperName)
+        if (exists) {
+            setNameError('Ese nombre ya existe. Usa otro.')
+            return
+        }
+        setNameError('')
         await saveScore(currentModule, {
-            name: playerName.trim().toUpperCase(),
+            name: upperName,
             score,
         })
         setSaved(true)
         setTimeout(() => navigate('/leaderboard'), 800)
     }
 
-    const MODULE_ROUTES = { syntax: '/syntax', truth: '/truth', finder: '/finder' }
+    const MODULE_ROUTES = { syntax: '/syntax', finder: '/finder' }
 
     const handlePlayAgain = () => {
         startGame(currentModule)
@@ -129,16 +137,28 @@ export default function GameOverScreen() {
                             type="text"
                             maxLength={12}
                             value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
+                            onChange={(e) => { setPlayerName(e.target.value); setNameError('') }}
                             placeholder="TU NOMBRE..."
                             className="w-full max-w-xs px-4 py-3 text-center text-lg tracking-widest uppercase bg-transparent text-[#00FFFF] outline-none"
                             style={{
                                 fontFamily: "'Share Tech Mono', monospace",
-                                border: '2px solid #00FFFF',
-                                boxShadow: '0 0 10px rgba(0,255,255,0.3), inset 0 0 10px rgba(0,255,255,0.05)',
+                                border: `2px solid ${nameError ? '#FF0040' : '#00FFFF'}`,
+                                boxShadow: nameError
+                                    ? '0 0 10px rgba(255,0,64,0.3), inset 0 0 10px rgba(255,0,64,0.05)'
+                                    : '0 0 10px rgba(0,255,255,0.3), inset 0 0 10px rgba(0,255,255,0.05)',
                             }}
                             onKeyDown={(e) => e.key === 'Enter' && handleSave()}
                         />
+                        {nameError && (
+                            <p style={{
+                                color: '#FF0040',
+                                fontSize: '0.75rem',
+                                fontFamily: "'Share Tech Mono', monospace",
+                                textShadow: '0 0 8px rgba(255,0,64,0.4)',
+                            }}>
+                                {nameError}
+                            </p>
+                        )}
                         <NeonButton color="cyan" onClick={handleSave} disabled={!playerName.trim()}>
                             GUARDAR PUNTUACIÓN
                         </NeonButton>

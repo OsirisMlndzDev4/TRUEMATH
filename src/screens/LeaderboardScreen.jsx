@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { getScores, getAllScores, clearScores } from '../utils/leaderboard'
+import { getScores, getAllScores } from '../utils/leaderboard'
 import NeonButton from '../components/ui/NeonButton'
 
 const TABS = [
     { key: 'syntax', label: 'SYNTAX NODE', color: '#00FF41' },
-    { key: 'truth', label: 'TRUTH MATRIX', color: '#FF00FF' },
     { key: 'finder', label: 'TRUTH FINDER', color: '#FFD700' },
     { key: 'all', label: 'ALL TIME', color: '#00FFFF' },
 ]
@@ -19,14 +18,13 @@ const RANK_COLORS = {
 
 const MODULE_LABELS = {
     syntax: 'SYNTAX',
-    truth: 'TRUTH',
     finder: 'FINDER',
 }
 
 export default function LeaderboardScreen() {
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState('syntax')
-    const [showConfirm, setShowConfirm] = useState(false)
+
     const [scores, setScores] = useState([])
     const [loading, setLoading] = useState(true)
 
@@ -45,11 +43,7 @@ export default function LeaderboardScreen() {
 
     const top10 = scores.slice(0, 10)
 
-    const handleClear = async () => {
-        await clearScores(activeTab === 'all' ? 'all' : activeTab)
-        setScores([])
-        setShowConfirm(false)
-    }
+
 
     return (
         <motion.div
@@ -177,52 +171,9 @@ export default function LeaderboardScreen() {
                 <NeonButton color="cyan" size="sm" onClick={() => navigate('/')}>
                     ← INICIO
                 </NeonButton>
-                {top10.length > 0 && !showConfirm && (
-                    <NeonButton color="red" size="sm" onClick={() => setShowConfirm(true)}>
-                        BORRAR PUNTUACIONES
-                    </NeonButton>
-                )}
             </div>
 
-            {/* Confirm dialog */}
-            <AnimatePresence>
-                {showConfirm && (
-                    <motion.div
-                        className="fixed inset-0 flex items-center justify-center z-50"
-                        style={{ background: 'rgba(5,5,16,0.85)' }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <motion.div
-                            className="flex flex-col items-center gap-5 p-8"
-                            style={{
-                                background: '#0A0A2E',
-                                border: '1px solid #FF0040',
-                                boxShadow: '0 0 20px rgba(255,0,64,0.3)',
-                            }}
-                            initial={{ scale: 0.8 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0.8 }}
-                        >
-                            <p className="text-[#FF0040] font-bold text-lg text-center" style={{ fontFamily: "'Orbitron'" }}>
-                                ¿Borrar puntuaciones?
-                            </p>
-                            <p className="text-white/50 text-sm text-center">
-                                Esta acción no se puede deshacer.
-                            </p>
-                            <div className="flex gap-4">
-                                <NeonButton color="red" size="sm" onClick={handleClear}>
-                                    CONFIRMAR
-                                </NeonButton>
-                                <NeonButton color="cyan" size="sm" onClick={() => setShowConfirm(false)}>
-                                    CANCELAR
-                                </NeonButton>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
         </motion.div>
     )
 }

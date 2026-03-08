@@ -21,8 +21,29 @@ export const getScores = async (module) => {
 }
 
 /**
+ * Verificar si un nombre ya existe en el leaderboard de un módulo.
+ * @param {string} module - 'syntax' | 'finder'
+ * @param {string} name - nombre en MAYÚSCULAS
+ * @returns {Promise<boolean>}
+ */
+export const checkNameExists = async (module, name) => {
+    const { data, error } = await supabase
+        .from('scores')
+        .select('id')
+        .eq('module', module)
+        .eq('name', name)
+        .limit(1)
+
+    if (error) {
+        console.error('Error checking name:', error)
+        return false
+    }
+    return data.length > 0
+}
+
+/**
  * Guardar una puntuación.
- * @param {string} module - 'syntax' | 'truth' | 'finder'
+ * @param {string} module - 'syntax' | 'finder'
  * @param {{ name: string, score: number }} entry
  */
 export const saveScore = async (module, entry) => {

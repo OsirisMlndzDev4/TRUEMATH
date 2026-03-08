@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { syntaxExercises } from '../data/syntaxExercises'
-import { truthExercises } from '../data/truthExercises'
+
 import { finderLevels } from '../data/finderLevels'
 
 const useGameStore = create((set, get) => ({
@@ -15,8 +15,7 @@ const useGameStore = create((set, get) => ({
     startGame: (module) => {
         let exercises
         if (module === 'syntax') exercises = [...syntaxExercises]
-        else if (module === 'finder') exercises = [...finderLevels]
-        else exercises = [...truthExercises]
+        else exercises = [...finderLevels]
         set({
             currentModule: module,
             score: 0,

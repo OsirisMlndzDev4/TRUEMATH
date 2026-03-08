@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import useGameStore from '../../store/useGameStore'
@@ -10,13 +10,55 @@ import ExerciseBanner from './ExerciseBanner'
 import SymbolPalette from './SymbolPalette'
 import ConstructionZone from './ConstructionZone'
 
+const MAX_TIME = 60 // seconds per exercise
+
 export default function SyntaxNodeGame() {
     const navigate = useNavigate()
     const { exercises, currentExerciseIndex, score, submitAnswer, nextExercise, gameFinished } = useGameStore()
     const [tokens, setTokens] = useState([])
     const [feedback, setFeedback] = useState(null)
+    const [timeLeft, setTimeLeft] = useState(MAX_TIME)
+    const [earnedPoints, setEarnedPoints] = useState(0)
+    const timerRef = useRef(null)
 
     const exercise = exercises[currentExerciseIndex]
+
+    // Calculate time-based points
+    const calcPoints = (remaining) => Math.max(10, Math.round(100 * (remaining / MAX_TIME)))
+
+    // Reset timer on each new exercise
+    useEffect(() => {
+        setTimeLeft(MAX_TIME)
+    }, [currentExerciseIndex])
+
+    // Timer countdown
+    useEffect(() => {
+        if (gameFinished || !exercise || feedback) return
+
+        timerRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current)
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
+
+        return () => clearInterval(timerRef.current)
+    }, [gameFinished, exercise, feedback, currentExerciseIndex])
+
+    // Handle time expiry
+    useEffect(() => {
+        if (timeLeft === 0 && !feedback && exercise) {
+            setFeedback({ type: 'timeout' })
+            setTimeout(() => {
+                setFeedback(null)
+                setTokens([])
+                nextExercise()
+            }, 1500)
+        }
+    }, [timeLeft, feedback, exercise, nextExercise])
 
     // Redirect to game over when finished
     useEffect(() => {
@@ -25,7 +67,6 @@ export default function SyntaxNodeGame() {
         }
     }, [gameFinished, navigate])
 
-    // All hooks MUST be above the early return
     const handleAddToken = useCallback((token) => {
         if (feedback) return
         setTokens((prev) => [...prev, token])
@@ -47,7 +88,9 @@ export default function SyntaxNodeGame() {
         const isCorrect = compareTokenArrays(tokens, exercise.solution)
 
         if (isCorrect) {
-            submitAnswer(true, 100)
+            const pts = calcPoints(timeLeft)
+            setEarnedPoints(pts)
+            submitAnswer(true, pts)
             setFeedback({ type: 'correct' })
             setTimeout(() => {
                 setFeedback(null)
@@ -60,7 +103,7 @@ export default function SyntaxNodeGame() {
                 solution: formatFormula(exercise.solution),
             })
         }
-    }, [exercise, tokens, feedback, submitAnswer, nextExercise])
+    }, [exercise, tokens, feedback, submitAnswer, nextExercise, timeLeft])
 
     const handleRetry = useCallback(() => {
         setFeedback(null)
@@ -77,6 +120,8 @@ export default function SyntaxNodeGame() {
     if (gameFinished || !exercise) return null
 
     const availableVars = Object.keys(exercise.variables)
+    const timerPct = timeLeft / MAX_TIME
+    const timerColor = timerPct > 0.5 ? '#00FF41' : timerPct > 0.2 ? '#FFD700' : '#FF0040'
 
     return (
         <motion.div
@@ -94,7 +139,40 @@ export default function SyntaxNodeGame() {
                 >
                     SYNTAX NODE
                 </h2>
-                <ScoreDisplay score={score} color="#00FF41" />
+                <div className="flex items-center gap-6">
+                    {/* Timer */}
+                    <div className="flex flex-col items-center gap-1">
+                        <span
+                            className="text-xs font-[Orbitron] tracking-widest uppercase"
+                            style={{ color: timerColor, textShadow: `0 0 8px ${timerColor}60` }}
+                        >
+                            TIEMPO
+                        </span>
+                        <span
+                            className="text-3xl font-bold font-[Orbitron]"
+                            style={{
+                                color: timerColor,
+                                textShadow: `0 0 12px ${timerColor}80, 0 0 24px ${timerColor}40`,
+                            }}
+                        >
+                            {timeLeft}s
+                        </span>
+                    </div>
+                    <ScoreDisplay score={score} color="#00FF41" />
+                </div>
+            </div>
+
+            {/* Timer bar */}
+            <div className="w-full max-w-2xl mb-4" style={{ height: '3px', background: 'rgba(255,255,255,0.1)' }}>
+                <motion.div
+                    style={{
+                        height: '100%',
+                        background: timerColor,
+                        boxShadow: `0 0 8px ${timerColor}80`,
+                        width: `${timerPct * 100}%`,
+                    }}
+                    transition={{ duration: 0.3 }}
+                />
             </div>
 
             {/* Exercise content */}
@@ -157,7 +235,26 @@ export default function SyntaxNodeGame() {
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     CORRECTO
                                 </p>
-                                <p className="text-[#00FF41]/70 text-lg">+100 pts</p>
+                                <p className="text-[#00FF41]/70 text-lg">+{earnedPoints} pts</p>
+                            </motion.div>
+                        ) : feedback.type === 'timeout' ? (
+                            <motion.div
+                                className="flex flex-col items-center gap-4 p-10"
+                                initial={{ scale: 0.5 }}
+                                animate={{ scale: 1.1 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 12 }}
+                                style={{
+                                    background: '#0A0A2E',
+                                    border: '2px solid #FF0040',
+                                    boxShadow: '0 0 30px rgba(255,0,64,0.4), 0 0 60px rgba(255,0,64,0.2)',
+                                }}
+                            >
+                                <span className="text-5xl">⏰</span>
+                                <p className="text-2xl font-black text-[#FF0040]"
+                                    style={{ fontFamily: "'Orbitron'" }}>
+                                    TIEMPO AGOTADO
+                                </p>
+                                <p className="text-[#FF0040]/60 text-sm">+0 pts</p>
                             </motion.div>
                         ) : (
                             <motion.div

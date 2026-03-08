@@ -16,7 +16,7 @@ import {
     classifyFormula,
     boolToChip,
 } from '../../utils/truthFinderEngine'
-import { saveScore } from '../../utils/leaderboard'
+import { saveScore, checkNameExists } from '../../utils/leaderboard'
 import './TruthFinderGame.css'
 
 /* ══════════════════════════════════════════
@@ -27,7 +27,6 @@ const MAX_ALERT = 5              // errores máximos antes de reiniciar
 const DEV_MODE = true
 const POINTS_PER_CELL = 10       // puntos por celda correcta
 const POINTS_CLASSIFY = 50       // puntos por clasificar bien
-const LEVEL_BONUS = 100          // bonus por completar nivel
 
 // Tiempo límite por dificultad (segundos)
 const DIFFICULTY_TIMES = {
@@ -518,6 +517,8 @@ export default function TruthFinderGame() {
     const [classifyResult, setClassifyResult] = useState(null)  // null | 'correct' | 'incorrect'
     const [playerName, setPlayerName] = useState('')
     const [saved, setSaved] = useState(false)
+    const [nameError, setNameError] = useState('')
+    const [lastTimeBonus, setLastTimeBonus] = useState(0)
 
     // ── Tabla acumulada progresiva ──
     // { columns: string[], rows: boolean[][] }
@@ -738,12 +739,14 @@ export default function TruthFinderGame() {
         const isCorrect = verdict === level.classification
         setClassifyResult(isCorrect ? 'correct' : 'incorrect')
         if (isCorrect) {
-            setScore((prev) => prev + POINTS_CLASSIFY + LEVEL_BONUS)
+            const timeBonus = Math.max(25, Math.round(200 * (timeLeft / maxTime)))
+            setLastTimeBonus(timeBonus)
+            setScore((prev) => prev + POINTS_CLASSIFY + timeBonus)
         }
         setTimeout(() => {
             setGamePhase('levelComplete')
         }, 1500)
-    }, [level])
+    }, [level, timeLeft, maxTime])
 
     /** Siguiente nivel */
     const handleNextLevel = useCallback(() => {
@@ -794,8 +797,15 @@ export default function TruthFinderGame() {
     // ── Handler para guardar puntuación ──
     const handleSaveScore = async () => {
         if (!playerName.trim()) return
+        const upperName = playerName.trim().toUpperCase()
+        const exists = await checkNameExists('finder', upperName)
+        if (exists) {
+            setNameError('Ese nombre ya existe. Usa otro.')
+            return
+        }
+        setNameError('')
         await saveScore('finder', {
-            name: playerName.trim().toUpperCase(),
+            name: upperName,
             score,
         })
         setSaved(true)
@@ -852,7 +862,7 @@ export default function TruthFinderGame() {
                                     type="text"
                                     maxLength={12}
                                     value={playerName}
-                                    onChange={(e) => setPlayerName(e.target.value)}
+                                    onChange={(e) => { setPlayerName(e.target.value); setNameError('') }}
                                     placeholder="TU NOMBRE..."
                                     className="tf-name-input"
                                     onKeyDown={(e) => e.key === 'Enter' && handleSaveScore()}
@@ -866,12 +876,25 @@ export default function TruthFinderGame() {
                                         textTransform: 'uppercase',
                                         background: 'transparent',
                                         color: '#00FFFF',
-                                        border: '2px solid #00FFFF',
-                                        boxShadow: '0 0 10px rgba(0,255,255,0.3), inset 0 0 10px rgba(0,255,255,0.05)',
+                                        border: `2px solid ${nameError ? '#FF0040' : '#00FFFF'}`,
+                                        boxShadow: nameError
+                                            ? '0 0 10px rgba(255,0,64,0.3), inset 0 0 10px rgba(255,0,64,0.05)'
+                                            : '0 0 10px rgba(0,255,255,0.3), inset 0 0 10px rgba(0,255,255,0.05)',
                                         fontFamily: "'Share Tech Mono', monospace",
                                         outline: 'none',
                                     }}
                                 />
+                                {nameError && (
+                                    <p style={{
+                                        color: '#FF0040',
+                                        fontSize: '0.7rem',
+                                        fontFamily: "'Share Tech Mono', monospace",
+                                        textShadow: '0 0 8px rgba(255,0,64,0.4)',
+                                        marginTop: '0.25rem',
+                                    }}>
+                                        {nameError}
+                                    </p>
+                                )}
                                 <button
                                     className="tf-neon-btn cyan"
                                     onClick={handleSaveScore}
@@ -1219,9 +1242,20 @@ export default function TruthFinderGame() {
                             }}>
                                 {level.classification}
                             </p>
-                            <div className="tf-score" style={{ marginBottom: '1.5rem' }}>
+                            <div className="tf-score" style={{ marginBottom: '0.5rem' }}>
                                 {score} PTS
                             </div>
+                            {classifyResult === 'correct' && lastTimeBonus > 0 && (
+                                <p style={{
+                                    color: '#FFD700',
+                                    fontSize: '0.7rem',
+                                    fontFamily: "'Share Tech Mono', monospace",
+                                    textShadow: '0 0 8px rgba(255,215,0,0.4)',
+                                    marginBottom: '1.5rem',
+                                }}>
+                                    ⚡ Bonus de tiempo: +{lastTimeBonus} pts
+                                </p>
+                            )}
                             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                                 <button className="tf-neon-btn cyan" onClick={handleNextLevel}>
                                     {currentLevelIdx + 1 < finderLevels.length
