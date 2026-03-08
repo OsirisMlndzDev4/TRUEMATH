@@ -519,6 +519,7 @@ export default function TruthFinderGame() {
     const [saved, setSaved] = useState(false)
     const [nameError, setNameError] = useState('')
     const [lastTimeBonus, setLastTimeBonus] = useState(0)
+    const [saving, setSaving] = useState(false)
 
     // ── Tabla acumulada progresiva ──
     // { columns: string[], rows: boolean[][] }
@@ -796,11 +797,13 @@ export default function TruthFinderGame() {
 
     // ── Handler para guardar puntuación ──
     const handleSaveScore = async () => {
-        if (!playerName.trim()) return
+        if (!playerName.trim() || saving) return
         const upperName = playerName.trim().toUpperCase()
+        setSaving(true)
         const exists = await checkNameExists('finder', upperName)
         if (exists) {
             setNameError('Ese nombre ya existe. Usa otro.')
+            setSaving(false)
             return
         }
         setNameError('')
@@ -808,6 +811,7 @@ export default function TruthFinderGame() {
             name: upperName,
             score,
         })
+        setSaving(false)
         setSaved(true)
         setTimeout(() => navigate('/leaderboard'), 800)
     }
@@ -864,6 +868,7 @@ export default function TruthFinderGame() {
                                     value={playerName}
                                     onChange={(e) => { setPlayerName(e.target.value); setNameError('') }}
                                     placeholder="TU NOMBRE..."
+                                    disabled={saving}
                                     className="tf-name-input"
                                     onKeyDown={(e) => e.key === 'Enter' && handleSaveScore()}
                                     style={{
@@ -898,10 +903,23 @@ export default function TruthFinderGame() {
                                 <button
                                     className="tf-neon-btn cyan"
                                     onClick={handleSaveScore}
-                                    disabled={!playerName.trim()}
-                                    style={{ opacity: playerName.trim() ? 1 : 0.4 }}
+                                    disabled={!playerName.trim() || saving}
+                                    style={{ opacity: (playerName.trim() && !saving) ? 1 : 0.4 }}
                                 >
-                                    GUARDAR PUNTUACIÓN
+                                    {saving ? (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <span style={{
+                                                width: '14px',
+                                                height: '14px',
+                                                border: '2px solid rgba(0,255,255,0.3)',
+                                                borderTopColor: '#00FFFF',
+                                                borderRadius: '50%',
+                                                display: 'inline-block',
+                                                animation: 'spin 0.8s linear infinite',
+                                            }} />
+                                            GUARDANDO...
+                                        </span>
+                                    ) : 'GUARDAR PUNTUACIÓN'}
                                 </button>
                             </div>
                         ) : (

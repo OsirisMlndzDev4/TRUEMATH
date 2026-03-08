@@ -12,6 +12,65 @@ import ConstructionZone from './ConstructionZone'
 
 const MAX_TIME = 60 // seconds per exercise
 
+// ── Hint generator — gives clues without revealing the answer ──
+const CONNECTOR_NAMES = {
+    '∧': 'conjunción (∧)',
+    '∨': 'disyunción (∨)',
+    '→': 'condicional (→)',
+    '↔': 'bicondicional (↔)',
+    '¬': 'negación (¬)',
+}
+
+function generateHints(exercise, playerTokens) {
+    const sol = exercise.solution
+    const hints = []
+
+    // Hint 1: expected length
+    if (playerTokens.length !== sol.length) {
+        if (playerTokens.length < sol.length) {
+            hints.push(`Tu fórmula es muy corta. Se esperan ${sol.length} elementos.`)
+        } else {
+            hints.push(`Tu fórmula es muy larga. Se esperan ${sol.length} elementos.`)
+        }
+    }
+
+    // Hint 2: which connectors are needed
+    const solConnectors = sol.filter(t => Object.keys(CONNECTOR_NAMES).includes(t))
+    const playerConnectors = playerTokens.filter(t => Object.keys(CONNECTOR_NAMES).includes(t))
+    const uniqueSolConn = [...new Set(solConnectors)]
+
+    const missingConns = uniqueSolConn.filter(c => !playerConnectors.includes(c))
+    if (missingConns.length > 0) {
+        const names = missingConns.map(c => CONNECTOR_NAMES[c]).join(', ')
+        hints.push(`Necesitas usar: ${names}`)
+    }
+
+    // Hint 3: parentheses needed?
+    const solHasParens = sol.includes('(') || sol.includes(')')
+    const playerHasParens = playerTokens.includes('(') || playerTokens.includes(')')
+    if (solHasParens && !playerHasParens) {
+        hints.push('Esta fórmula requiere paréntesis para agrupar correctamente.')
+    } else if (!solHasParens && playerHasParens) {
+        hints.push('Esta fórmula no necesita paréntesis.')
+    }
+
+    // Hint 4: negation check
+    const solNegCount = sol.filter(t => t === '¬').length
+    const playerNegCount = playerTokens.filter(t => t === '¬').length
+    if (solNegCount > playerNegCount) {
+        hints.push('Revisa si necesitas agregar alguna negación (¬).')
+    } else if (solNegCount < playerNegCount) {
+        hints.push('Tienes negaciones de más. Revisa cuáles son necesarias.')
+    }
+
+    // Fallback
+    if (hints.length === 0) {
+        hints.push('Estás cerca. Revisa el orden de los elementos.')
+    }
+
+    return hints.slice(0, 3) // max 3 hints
+}
+
 export default function SyntaxNodeGame() {
     const navigate = useNavigate()
     const { exercises, currentExerciseIndex, score, submitAnswer, nextExercise, gameFinished } = useGameStore()
@@ -52,13 +111,8 @@ export default function SyntaxNodeGame() {
     useEffect(() => {
         if (timeLeft === 0 && !feedback && exercise) {
             setFeedback({ type: 'timeout' })
-            setTimeout(() => {
-                setFeedback(null)
-                setTokens([])
-                nextExercise()
-            }, 1500)
         }
-    }, [timeLeft, feedback, exercise, nextExercise])
+    }, [timeLeft, feedback, exercise])
 
     // Redirect to game over when finished
     useEffect(() => {
@@ -91,26 +145,21 @@ export default function SyntaxNodeGame() {
             const pts = calcPoints(timeLeft)
             setEarnedPoints(pts)
             submitAnswer(true, pts)
-            setFeedback({ type: 'correct' })
-            setTimeout(() => {
-                setFeedback(null)
-                setTokens([])
-                nextExercise()
-            }, 1500)
+            setFeedback({ type: 'correct', solution: formatFormula(exercise.solution) })
         } else {
             setFeedback({
                 type: 'incorrect',
-                solution: formatFormula(exercise.solution),
+                hints: generateHints(exercise, tokens),
             })
         }
-    }, [exercise, tokens, feedback, submitAnswer, nextExercise, timeLeft])
+    }, [exercise, tokens, feedback, submitAnswer, timeLeft])
 
     const handleRetry = useCallback(() => {
         setFeedback(null)
         setTokens([])
     }, [])
 
-    const handleSkip = useCallback(() => {
+    const handleNext = useCallback(() => {
         setFeedback(null)
         setTokens([])
         nextExercise()
@@ -236,6 +285,18 @@ export default function SyntaxNodeGame() {
                                     CORRECTO
                                 </p>
                                 <p className="text-[#00FF41]/70 text-lg">+{earnedPoints} pts</p>
+                                <div className="text-center mt-2">
+                                    <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Fórmula:</p>
+                                    <p className="text-xl text-[#00FFFF]"
+                                        style={{ fontFamily: "'Share Tech Mono'" }}>
+                                        {feedback.solution}
+                                    </p>
+                                </div>
+                                <div className="flex gap-3 mt-4">
+                                    <NeonButton color="verde" size="sm" onClick={handleNext}>
+                                        SIGUIENTE →
+                                    </NeonButton>
+                                </div>
                             </motion.div>
                         ) : feedback.type === 'timeout' ? (
                             <motion.div
@@ -255,6 +316,11 @@ export default function SyntaxNodeGame() {
                                     TIEMPO AGOTADO
                                 </p>
                                 <p className="text-[#FF0040]/60 text-sm">+0 pts</p>
+                                <div className="flex gap-3 mt-4">
+                                    <NeonButton color="verde" size="sm" onClick={handleRetry}>
+                                        REINTENTAR
+                                    </NeonButton>
+                                </div>
                             </motion.div>
                         ) : (
                             <motion.div
@@ -273,19 +339,23 @@ export default function SyntaxNodeGame() {
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     INCORRECTO
                                 </p>
-                                <div className="text-center mt-2">
-                                    <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Solución:</p>
-                                    <p className="text-xl text-[#00FFFF]"
-                                        style={{ fontFamily: "'Share Tech Mono'" }}>
-                                        {feedback.solution}
+                                <div className="text-center mt-3">
+                                    <p className="text-xs text-[#FFD700]/60 uppercase tracking-widest mb-2"
+                                        style={{ fontFamily: "'Orbitron'" }}>
+                                        💡 PISTAS
                                     </p>
+                                    <div className="flex flex-col gap-2">
+                                        {feedback.hints.map((hint, i) => (
+                                            <p key={i} className="text-sm text-[#FFD700]/80"
+                                                style={{ fontFamily: "'Share Tech Mono'" }}>
+                                                ▸ {hint}
+                                            </p>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div className="flex gap-3 mt-4">
                                     <NeonButton color="verde" size="sm" onClick={handleRetry}>
                                         REINTENTAR
-                                    </NeonButton>
-                                    <NeonButton color="magenta" size="sm" onClick={handleSkip}>
-                                        SIGUIENTE
                                     </NeonButton>
                                 </div>
                             </motion.div>

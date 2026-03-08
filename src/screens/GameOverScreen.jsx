@@ -13,6 +13,7 @@ export default function GameOverScreen() {
     const [saved, setSaved] = useState(false)
     const [displayScore, setDisplayScore] = useState(0)
     const [nameError, setNameError] = useState('')
+    const [saving, setSaving] = useState(false)
 
     const grade = getGrade(score)
 
@@ -34,11 +35,13 @@ export default function GameOverScreen() {
     }, [score])
 
     const handleSave = async () => {
-        if (!playerName.trim()) return
+        if (!playerName.trim() || saving) return
         const upperName = playerName.trim().toUpperCase()
+        setSaving(true)
         const exists = await checkNameExists(currentModule, upperName)
         if (exists) {
             setNameError('Ese nombre ya existe. Usa otro.')
+            setSaving(false)
             return
         }
         setNameError('')
@@ -46,6 +49,7 @@ export default function GameOverScreen() {
             name: upperName,
             score,
         })
+        setSaving(false)
         setSaved(true)
         setTimeout(() => navigate('/leaderboard'), 800)
     }
@@ -139,6 +143,7 @@ export default function GameOverScreen() {
                             value={playerName}
                             onChange={(e) => { setPlayerName(e.target.value); setNameError('') }}
                             placeholder="TU NOMBRE..."
+                            disabled={saving}
                             className="w-full max-w-xs px-4 py-3 text-center text-lg tracking-widest uppercase bg-transparent text-[#00FFFF] outline-none"
                             style={{
                                 fontFamily: "'Share Tech Mono', monospace",
@@ -159,8 +164,21 @@ export default function GameOverScreen() {
                                 {nameError}
                             </p>
                         )}
-                        <NeonButton color="cyan" onClick={handleSave} disabled={!playerName.trim()}>
-                            GUARDAR PUNTUACIÓN
+                        <NeonButton color="cyan" onClick={handleSave} disabled={!playerName.trim() || saving}>
+                            {saving ? (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{
+                                        width: '14px',
+                                        height: '14px',
+                                        border: '2px solid rgba(0,255,255,0.3)',
+                                        borderTopColor: '#00FFFF',
+                                        borderRadius: '50%',
+                                        display: 'inline-block',
+                                        animation: 'spin 0.8s linear infinite',
+                                    }} />
+                                    GUARDANDO...
+                                </span>
+                            ) : 'GUARDAR PUNTUACIÓN'}
                         </NeonButton>
                     </motion.div>
                 )}

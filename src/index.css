@@ -21,13 +21,17 @@
 }
 
 /* ─── GLOBAL RESET ─── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
   overflow-x: hidden;
@@ -41,7 +45,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-orbitron);
 }
 
@@ -49,9 +58,11 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-bg-deep);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-cyan);
   border-radius: 3px;
@@ -61,12 +72,15 @@ h1, h2, h3, h4, h5, h6 {
 .glow-cyan {
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.3), 0 0 40px rgba(0, 255, 255, 0.15);
 }
+
 .glow-magenta {
   box-shadow: 0 0 10px rgba(255, 0, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.3), 0 0 40px rgba(255, 0, 255, 0.15);
 }
+
 .glow-verde {
   box-shadow: 0 0 10px rgba(0, 255, 65, 0.5), 0 0 20px rgba(0, 255, 65, 0.3), 0 0 40px rgba(0, 255, 65, 0.15);
 }
+
 .glow-red {
   box-shadow: 0 0 10px rgba(255, 0, 64, 0.5), 0 0 20px rgba(255, 0, 64, 0.3), 0 0 40px rgba(255, 0, 64, 0.15);
 }
@@ -74,9 +88,11 @@ h1, h2, h3, h4, h5, h6 {
 .text-glow-cyan {
   text-shadow: 0 0 10px rgba(0, 255, 255, 0.6), 0 0 20px rgba(0, 255, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.2);
 }
+
 .text-glow-magenta {
   text-shadow: 0 0 10px rgba(255, 0, 255, 0.6), 0 0 20px rgba(255, 0, 255, 0.4), 0 0 40px rgba(255, 0, 255, 0.2);
 }
+
 .text-glow-verde {
   text-shadow: 0 0 10px rgba(0, 255, 65, 0.6), 0 0 20px rgba(0, 255, 65, 0.4), 0 0 40px rgba(0, 255, 65, 0.2);
 }
@@ -86,10 +102,12 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--color-cyan);
   box-shadow: 0 0 8px rgba(0, 255, 255, 0.5), inset 0 0 8px rgba(0, 255, 255, 0.1);
 }
+
 .neon-border-magenta {
   border: 1px solid var(--color-magenta);
   box-shadow: 0 0 8px rgba(255, 0, 255, 0.5), inset 0 0 8px rgba(255, 0, 255, 0.1);
 }
+
 .neon-border-verde {
   border: 1px solid var(--color-verde);
   box-shadow: 0 0 8px rgba(0, 255, 65, 0.5), inset 0 0 8px rgba(0, 255, 65, 0.1);
@@ -99,50 +117,87 @@ h1, h2, h3, h4, h5, h6 {
 .scanline-overlay {
   position: relative;
 }
+
 .scanline-overlay::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.08) 0px,
-    rgba(0, 0, 0, 0.08) 1px,
-    transparent 1px,
-    transparent 3px
-  );
+  background: repeating-linear-gradient(0deg,
+      rgba(0, 0, 0, 0.08) 0px,
+      rgba(0, 0, 0, 0.08) 1px,
+      transparent 1px,
+      transparent 3px);
   pointer-events: none;
   z-index: 1;
 }
 
 /* ─── PULSE ANIMATION ─── */
 @keyframes pulse-glow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
 /* ─── BLINK CURSOR ─── */
 @keyframes blink-cursor {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
+
 .animate-blink {
   animation: blink-cursor 1s step-end infinite;
 }
 
 /* ─── ROTATING CUBE ─── */
 @keyframes rotate-cube {
-  from { transform: rotateX(0deg) rotateY(0deg); }
-  to { transform: rotateX(360deg) rotateY(360deg); }
+  from {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(360deg) rotateY(360deg);
+  }
 }
 
 /* ─── QUESTION MARK PULSE ─── */
 @keyframes question-pulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.15); }
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
+
 .animate-question-pulse {
   animation: question-pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── SPIN (loading spinner) ─── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
