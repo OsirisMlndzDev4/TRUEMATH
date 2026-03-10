@@ -10,67 +10,101 @@ import ExerciseBanner from './ExerciseBanner'
 import SymbolPalette from './SymbolPalette'
 import ConstructionZone from './ConstructionZone'
 
-const MAX_TIME = 60 // seconds per exercise
+// ── Configuración por dificultad ──
+const DIFFICULTY_CONFIG = {
+    easy:   { time: 45, basePoints: 100, multiplier: 0.75, minPoints: 8 },
+    medium: { time: 60, basePoints: 100, multiplier: 1.2,  minPoints: 12 },
+    hard:   { time: 90, basePoints: 100, multiplier: 2.5,  minPoints: 25 },
+}
+const DEFAULT_CONFIG = DIFFICULTY_CONFIG.medium
+
 // ⚠️ DEV_MODE — Poner en false para producción. Buscar 'DEV_MODE' para eliminar.
 const DEV_MODE = true
 
-// ── Hint generator — gives clues without revealing the answer ──
-const CONNECTOR_NAMES = {
-    '∧': 'conjunción (∧)',
-    '∨': 'disyunción (∨)',
-    '→': 'condicional (→)',
-    '↔': 'bicondicional (↔)',
-    '¬': 'negación (¬)',
+// Palabras clave en oraciones que mapean a conectores lógicos
+const KEYWORD_HINTS = {
+    '∧': [' y ', ' ni '],
+    '∨': [' o '],
+    '→': ['si ', 'entonces'],
+    '↔': ['si y solo si'],
+    '¬': ['no ', 'ni ', 'no es verdad', 'no es cierto'],
+}
+
+function getTimeForDifficulty(difficulty) {
+    return (DIFFICULTY_CONFIG[difficulty] || DEFAULT_CONFIG).time
 }
 
 function generateHints(exercise, playerTokens) {
     const sol = exercise.solution
+    const sentence = exercise.sentence.toLowerCase()
     const hints = []
 
-    // Hint 1: expected length
+    const solConnectors = sol.filter(t => ['∧', '∨', '→', '↔', '¬'].includes(t))
+    const playerConnectors = playerTokens.filter(t => ['∧', '∨', '→', '↔', '¬'].includes(t))
+    const solHasParens = sol.includes('(')
+    const playerHasParens = playerTokens.includes('(')
+    const solNegCount = sol.filter(t => t === '¬').length
+    const playerNegCount = playerTokens.filter(t => t === '¬').length
+
+    // Hint: longitud (sin revelar el número exacto)
     if (playerTokens.length !== sol.length) {
-        if (playerTokens.length < sol.length) {
-            hints.push(`Tu fórmula es muy corta. Se esperan ${sol.length} elementos.`)
+        const diff = sol.length - playerTokens.length
+        if (diff > 2) {
+            hints.push('Tu fórmula parece bastante incompleta. Revisa si faltan operadores o agrupaciones.')
+        } else if (diff > 0) {
+            hints.push('Estás cerca, pero faltan algunos elementos.')
+        } else if (diff < -2) {
+            hints.push('Tu fórmula tiene varios elementos de más. Intenta simplificar.')
         } else {
-            hints.push(`Tu fórmula es muy larga. Se esperan ${sol.length} elementos.`)
+            hints.push('Tu fórmula tiene algún elemento extra. Revisa qué sobra.')
         }
     }
 
-    // Hint 2: which connectors are needed
-    const solConnectors = sol.filter(t => Object.keys(CONNECTOR_NAMES).includes(t))
-    const playerConnectors = playerTokens.filter(t => Object.keys(CONNECTOR_NAMES).includes(t))
-    const uniqueSolConn = [...new Set(solConnectors)]
-
-    const missingConns = uniqueSolConn.filter(c => !playerConnectors.includes(c))
-    if (missingConns.length > 0) {
-        const names = missingConns.map(c => CONNECTOR_NAMES[c]).join(', ')
-        hints.push(`Necesitas usar: ${names}`)
+    // Hint: conectores faltantes (guía hacia la palabra clave en la oración, no revela el símbolo)
+    const missingConns = [...new Set(solConnectors)].filter(c => !playerConnectors.includes(c))
+    for (const conn of missingConns) {
+        const keywords = KEYWORD_HINTS[conn] || []
+        const found = keywords.find(kw => sentence.includes(kw))
+        if (found) {
+            hints.push(`Observa la palabra "${found.trim()}" en la oración. ¿Qué conector lógico representa?`)
+            break
+        }
     }
 
-    // Hint 3: parentheses needed?
-    const solHasParens = sol.includes('(') || sol.includes(')')
-    const playerHasParens = playerTokens.includes('(') || playerTokens.includes(')')
+    // Hint: paréntesis
     if (solHasParens && !playerHasParens) {
-        hints.push('Esta fórmula requiere paréntesis para agrupar correctamente.')
+        hints.push('Hay una idea compuesta que debe evaluarse junta antes del conector principal. ¿Necesitas agrupar algo?')
     } else if (!solHasParens && playerHasParens) {
-        hints.push('Esta fórmula no necesita paréntesis.')
+        hints.push('Esta fórmula no necesita agrupaciones extra. Intenta sin paréntesis.')
     }
 
-    // Hint 4: negation check
-    const solNegCount = sol.filter(t => t === '¬').length
-    const playerNegCount = playerTokens.filter(t => t === '¬').length
+    // Hint: negación
     if (solNegCount > playerNegCount) {
-        hints.push('Revisa si necesitas agregar alguna negación (¬).')
+        if (sentence.includes('no es') || sentence.includes('no es cierto')) {
+            hints.push('Fíjate en "no es cierto que..." o "no es verdad que...". ¿Qué parte de la oración se niega?')
+        } else if (sentence.includes(' ni ')) {
+            hints.push('La palabra "ni" implica negaciones. ¿Estás negando cada parte?')
+        } else {
+            hints.push('Busca las palabras "no" o "ni" en la oración. Hay alguna negación que no has traducido.')
+        }
     } else if (solNegCount < playerNegCount) {
-        hints.push('Tienes negaciones de más. Revisa cuáles son necesarias.')
+        hints.push('Tienes más negaciones de las necesarias. Revisa cuáles realmente aparecen en la oración.')
     }
 
-    // Fallback
+    // Hint: orden (tokens correctos pero desordenados)
+    if (hints.length === 0 && playerTokens.length === sol.length) {
+        const sortedPlayer = [...playerTokens].sort().join()
+        const sortedSol = [...sol].sort().join()
+        if (sortedPlayer === sortedSol) {
+            hints.push('Tienes los elementos correctos pero en orden incorrecto. ¿Cuál es la idea principal de la oración?')
+        }
+    }
+
     if (hints.length === 0) {
-        hints.push('Estás cerca. Revisa el orden de los elementos.')
+        hints.push('Estás cerca. Lee la oración de nuevo e identifica la relación principal entre las ideas.')
     }
 
-    return hints.slice(0, 3) // max 3 hints
+    return hints.slice(0, 3)
 }
 
 export default function SyntaxNodeGame() {
@@ -78,19 +112,23 @@ export default function SyntaxNodeGame() {
     const { exercises, currentExerciseIndex, score, submitAnswer, nextExercise, gameFinished } = useGameStore()
     const [tokens, setTokens] = useState([])
     const [feedback, setFeedback] = useState(null)
-    const [timeLeft, setTimeLeft] = useState(MAX_TIME)
     const [earnedPoints, setEarnedPoints] = useState(0)
     const timerRef = useRef(null)
 
     const exercise = exercises[currentExerciseIndex]
+    const diffConfig = exercise ? (DIFFICULTY_CONFIG[exercise.difficulty] || DEFAULT_CONFIG) : DEFAULT_CONFIG
+    const maxTime = diffConfig.time
 
-    // Calculate time-based points
-    const calcPoints = (remaining) => Math.max(10, Math.round(100 * (remaining / MAX_TIME)))
+    const [timeLeft, setTimeLeft] = useState(maxTime)
 
-    // Reset timer on each new exercise
+    const calcPoints = (remaining) => {
+        const { basePoints, multiplier, minPoints } = diffConfig
+        return Math.max(minPoints, Math.round(basePoints * multiplier * (remaining / maxTime)))
+    }
+
     useEffect(() => {
-        setTimeLeft(MAX_TIME)
-    }, [currentExerciseIndex])
+        setTimeLeft(getTimeForDifficulty(exercise?.difficulty))
+    }, [currentExerciseIndex, exercise?.difficulty])
 
     // Timer countdown
     useEffect(() => {
@@ -112,7 +150,7 @@ export default function SyntaxNodeGame() {
     // Handle time expiry
     useEffect(() => {
         if (timeLeft === 0 && !feedback && exercise) {
-            setFeedback({ type: 'timeout' })
+            setFeedback({ type: 'timeout', solution: formatFormula(exercise.solution) })
         }
     }, [timeLeft, feedback, exercise])
 
@@ -131,6 +169,11 @@ export default function SyntaxNodeGame() {
     const handleRemoveToken = useCallback((index) => {
         if (feedback) return
         setTokens((prev) => prev.filter((_, i) => i !== index))
+    }, [feedback])
+
+    const handleDeleteLast = useCallback(() => {
+        if (feedback) return
+        setTokens((prev) => prev.slice(0, -1))
     }, [feedback])
 
     const handleClear = useCallback(() => {
@@ -158,8 +201,6 @@ export default function SyntaxNodeGame() {
 
     const handleRetry = useCallback(() => {
         setFeedback(null)
-        setTokens([])
-        setTimeLeft(MAX_TIME)
     }, [])
 
     const handleNext = useCallback(() => {
@@ -172,7 +213,7 @@ export default function SyntaxNodeGame() {
     if (gameFinished || !exercise) return null
 
     const availableVars = Object.keys(exercise.variables)
-    const timerPct = timeLeft / MAX_TIME
+    const timerPct = timeLeft / maxTime
     const timerColor = timerPct > 0.5 ? '#00FF41' : timerPct > 0.2 ? '#FFD700' : '#FF0040'
 
     const DIFFICULTY_LABELS = { easy: 'FÁCIL', medium: 'INTERMEDIO', hard: 'DIFÍCIL' }
@@ -293,6 +334,9 @@ export default function SyntaxNodeGame() {
                     <NeonButton color="verde" onClick={handleSubmit} disabled={tokens.length === 0 || !!feedback}>
                         ✓ VERIFICAR
                     </NeonButton>
+                    <NeonButton color="magenta" onClick={handleDeleteLast} disabled={tokens.length === 0 || !!feedback}>
+                        ← BORRAR
+                    </NeonButton>
                     <NeonButton color="magenta" onClick={handleClear} disabled={tokens.length === 0 || !!feedback}>
                         ⌫ LIMPIAR
                     </NeonButton>
@@ -314,30 +358,32 @@ export default function SyntaxNodeGame() {
                     >
                         {feedback.type === 'correct' ? (
                             <motion.div
-                                className="flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-10"
+                                className="flex flex-col items-center"
                                 initial={{ scale: 0.5 }}
                                 animate={{ scale: 1.1 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 12 }}
                                 style={{
+                                    padding: 'clamp(2.5rem, 6vw, 3.5rem) clamp(3rem, 8vw, 5rem)',
+                                    gap: 'clamp(1.25rem, 3vw, 1.5rem)',
                                     background: '#0A0A2E',
                                     border: '2px solid #00FF41',
                                     boxShadow: '0 0 30px rgba(0,255,65,0.4), 0 0 60px rgba(0,255,65,0.2)',
                                 }}
                             >
-                                <span className="text-3xl sm:text-5xl">✓</span>
-                                <p className="text-xl sm:text-3xl font-black text-[#00FF41] text-glow-verde"
+                                <span className="text-4xl sm:text-5xl">✓</span>
+                                <p className="text-2xl sm:text-3xl font-black text-[#00FF41] text-glow-verde"
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     CORRECTO
                                 </p>
-                                <p className="text-[#00FF41]/70 text-lg">+{earnedPoints} pts</p>
-                                <div className="text-center mt-2">
-                                    <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Fórmula:</p>
-                                    <p className="text-xl text-[#00FFFF]"
+                                <p className="text-[#00FF41]/70 text-lg sm:text-xl">+{earnedPoints} pts</p>
+                                <div className="text-center" style={{ marginTop: '0.25rem' }}>
+                                    <p className="text-xs text-white/40 uppercase tracking-widest" style={{ marginBottom: '0.5rem' }}>Fórmula:</p>
+                                    <p className="text-xl sm:text-2xl text-[#00FFFF]"
                                         style={{ fontFamily: "'Share Tech Mono'" }}>
                                         {feedback.solution}
                                     </p>
                                 </div>
-                                <div className="flex gap-3 mt-4">
+                                <div className="flex gap-3" style={{ marginTop: '0.5rem' }}>
                                     <NeonButton color="verde" size="sm" onClick={handleNext}>
                                         SIGUIENTE →
                                     </NeonButton>
@@ -345,48 +391,60 @@ export default function SyntaxNodeGame() {
                             </motion.div>
                         ) : feedback.type === 'timeout' ? (
                             <motion.div
-                                className="flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-10"
+                                className="flex flex-col items-center"
                                 initial={{ scale: 0.5 }}
                                 animate={{ scale: 1.1 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 12 }}
                                 style={{
+                                    padding: 'clamp(2.5rem, 6vw, 3.5rem) clamp(3rem, 8vw, 5rem)',
+                                    gap: 'clamp(1.25rem, 3vw, 1.5rem)',
                                     background: '#0A0A2E',
                                     border: '2px solid #FF0040',
                                     boxShadow: '0 0 30px rgba(255,0,64,0.4), 0 0 60px rgba(255,0,64,0.2)',
                                 }}
                             >
-                                <span className="text-3xl sm:text-5xl">⏰</span>
-                                <p className="text-xl sm:text-2xl font-black text-[#FF0040]"
+                                <span className="text-4xl sm:text-5xl">⏰</span>
+                                <p className="text-2xl sm:text-3xl font-black text-[#FF0040]"
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     TIEMPO AGOTADO
                                 </p>
-                                <p className="text-[#FF0040]/60 text-sm">+0 pts</p>
-                                <div className="flex gap-3 mt-4">
-                                    <NeonButton color="verde" size="sm" onClick={handleRetry}>
-                                        REINTENTAR
+                                <p className="text-[#FF0040]/60 text-sm sm:text-base">+0 pts</p>
+                                <div className="text-center" style={{ marginTop: '0.25rem' }}>
+                                    <p className="text-xs text-white/40 uppercase tracking-widest" style={{ marginBottom: '0.5rem' }}>Respuesta correcta:</p>
+                                    <p className="text-xl sm:text-2xl text-[#00FFFF]"
+                                        style={{ fontFamily: "'Share Tech Mono'" }}>
+                                        {feedback.solution}
+                                    </p>
+                                </div>
+                                <div className="flex gap-3" style={{ marginTop: '0.5rem' }}>
+                                    <NeonButton color="verde" size="sm" onClick={handleNext}>
+                                        SIGUIENTE →
                                     </NeonButton>
                                 </div>
                             </motion.div>
                         ) : (
                             <motion.div
-                                className="flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-10 max-w-md"
+                                className="flex flex-col items-center"
                                 initial={{ x: -20 }}
                                 animate={{ x: [0, -10, 10, -10, 10, 0] }}
                                 transition={{ duration: 0.5 }}
                                 style={{
+                                    padding: 'clamp(2.5rem, 6vw, 3.5rem) clamp(3rem, 8vw, 5rem)',
+                                    gap: 'clamp(1.25rem, 3vw, 1.5rem)',
+                                    maxWidth: '28rem',
                                     background: '#0A0A2E',
                                     border: '2px solid #FF0040',
                                     boxShadow: '0 0 30px rgba(255,0,64,0.4)',
                                 }}
                             >
-                                <span className="text-3xl sm:text-5xl">✗</span>
-                                <p className="text-xl sm:text-2xl font-black text-[#FF0040]"
+                                <span className="text-4xl sm:text-5xl">✗</span>
+                                <p className="text-2xl sm:text-3xl font-black text-[#FF0040]"
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     INCORRECTO
                                 </p>
-                                <div className="text-center mt-3">
-                                    <p className="text-xs text-[#FFD700]/60 uppercase tracking-widest mb-2"
-                                        style={{ fontFamily: "'Orbitron'" }}>
+                                <div className="text-center" style={{ marginTop: '0.25rem' }}>
+                                    <p className="text-xs text-[#FFD700]/60 uppercase tracking-widest"
+                                        style={{ fontFamily: "'Orbitron'", marginBottom: '0.75rem' }}>
                                         💡 PISTAS
                                     </p>
                                     <div className="flex flex-col gap-2">
@@ -398,9 +456,9 @@ export default function SyntaxNodeGame() {
                                         ))}
                                     </div>
                                 </div>
-                                <div className="flex gap-3 mt-4">
+                                <div className="flex gap-3" style={{ marginTop: '0.5rem' }}>
                                     <NeonButton color="verde" size="sm" onClick={handleRetry}>
-                                        REINTENTAR
+                                        CORREGIR →
                                     </NeonButton>
                                 </div>
                             </motion.div>

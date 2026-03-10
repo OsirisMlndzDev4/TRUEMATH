@@ -36,10 +36,10 @@ const colorMap = {
 export default function NeonButton({ children, color = 'cyan', onClick, className = '', disabled = false, size = 'md' }) {
     const c = colorMap[color] || colorMap.cyan
     const sizeClasses = {
-        sm: 'px-3 py-2 text-xs sm:px-4 sm:text-sm',
-        md: 'px-4 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-base',
-        lg: 'px-6 py-3 text-base sm:px-10 sm:py-4 sm:text-lg',
-        xl: 'px-6 py-3.5 text-base sm:px-12 sm:py-5 sm:text-xl',
+        sm: 'px-4 py-2 text-xs sm:px-5 sm:text-sm',
+        md: 'px-5 py-2.5 text-sm sm:px-7 sm:py-3 sm:text-base',
+        lg: 'px-7 py-3 text-base sm:px-11 sm:py-4 sm:text-lg',
+        xl: 'px-7 py-3.5 text-base sm:px-14 sm:py-5 sm:text-xl',
     }
 
     return (

@@ -165,6 +165,10 @@ h6 {
   animation: blink-cursor 1s step-end infinite;
 }
 
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ─── ROTATING CUBE ─── */
 @keyframes rotate-cube {
   from {

@@ -169,10 +169,10 @@ function TodoList({ segments, activeIndex, completedSet, focusIndex, scrollBehav
    SUB-COMPONENTE: Fórmula con highlighting
    ══════════════════════════════════════════ */
 function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels, activeOperands = [] }) {
-    // Descomponer la fórmula en "tokens" visibles
+    const scrollWrapperRef = useRef(null)
+
     const chars = formulaStr.split('')
 
-    // Determinar qué caracteres pertenecen al segmento activo
     const activeStart = formulaStr.indexOf(activeSegmentLabel)
     const activeEnd = activeStart >= 0 && activeSegmentLabel ? activeStart + activeSegmentLabel.length : -1
 
@@ -188,7 +188,33 @@ function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels, activeO
         }
     }
 
-    // Escalar tamaño de fuente proporcionalmente a la longitud de la fórmula
+    // Auto-scroll para centrar el segmento activo dentro del wrapper.
+    // Usa doble rAF para garantizar que el layout ya se pintó tras montaje/transición.
+    useEffect(() => {
+        const wrapper = scrollWrapperRef.current
+        if (!wrapper || activeStart < 0) return
+
+        let cancelled = false
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (cancelled) return
+                const chars = wrapper.querySelectorAll('.tf-formula-char.active')
+                if (chars.length === 0) return
+
+                const first = chars[0]
+                const last = chars[chars.length - 1]
+                const wrapperRect = wrapper.getBoundingClientRect()
+                const firstRect = first.getBoundingClientRect()
+                const lastRect = last.getBoundingClientRect()
+
+                const segCenter = (firstRect.left + lastRect.right) / 2 - wrapperRect.left + wrapper.scrollLeft
+                wrapper.scrollTo({ left: segCenter - wrapperRect.width / 2, behavior: 'smooth' })
+            })
+        })
+
+        return () => { cancelled = true }
+    }, [activeSegmentLabel, activeStart])
+
     const len = formulaStr.length
     const dynamicFontSize = len <= 10 ? 2.2
         : len <= 15 ? 1.8
@@ -201,14 +227,13 @@ function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels, activeO
             <div className="tf-formula-label">⌐ Mensaje Bloqueado</div>
             
             <div style={{ position: 'relative' }}>
-                <div className="tf-formula-scroll-wrapper">
+                <div className="tf-formula-scroll-wrapper" ref={scrollWrapperRef}>
                     <div
                         className="tf-formula-text"
                         style={{ fontSize: `${dynamicFontSize}rem`, whiteSpace: 'nowrap' }}
                     >
                         {chars.map((char, i) => {
                             let cls = 'tf-formula-char'
-                            // Verificar si el carácter está dentro de un segmento resuelto
                             const isSolved = completedLabels.some((label) => {
                                 const s = formulaStr.indexOf(label)
                                 return s >= 0 && i >= s && i < s + label.length
@@ -234,7 +259,6 @@ function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels, activeO
                         })}
                     </div>
                 </div>
-                {/* Overlay difuminado a la derecha para indicar scroll */}
                 <div className="tf-formula-gradient-overlay" />
             </div>
         </div>
@@ -837,9 +861,7 @@ export default function TruthFinderGame() {
                     setGamePhase('revealing')
                     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 } else {
-                    // Todos los segmentos completos → fase de clasificación
                     setGamePhase('classify')
-                    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
             }, 600)
         }
@@ -852,6 +874,7 @@ export default function TruthFinderGame() {
                 setActiveSegIdx((prev) => prev + 1)
                 setGamePhase('playing')
                 setRevealingSegLabel('')
+                topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
             }, 2500)
             return () => clearTimeout(timer)
         }
@@ -1214,7 +1237,7 @@ export default function TruthFinderGame() {
                         activeIndex={activeSegIdx}
                         completedSet={completedSegs}
                         focusIndex={activeSegIdx}
-                        scrollBehavior={gamePhase === 'revealing' ? 'instant' : 'smooth'}
+                        scrollBehavior="smooth"
                     />
 
                     {/* Center panel — content switches by phase */}
