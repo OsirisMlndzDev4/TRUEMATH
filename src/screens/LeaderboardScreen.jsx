@@ -38,17 +38,16 @@ export default function LeaderboardScreen() {
     const [scores, setScores] = useState([])
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        const fetchScores = async () => {
-            setLoading(true)
-            const data = activeTab === 'all'
-                ? await getAllScores()
-                : await getScores(activeTab)
-            setScores(data)
-            setLoading(false)
-        }
-        fetchScores()
-    }, [activeTab])
+    const fetchScores = async () => {
+        setLoading(true)
+        const data = activeTab === 'all'
+            ? await getAllScores()
+            : await getScores(activeTab)
+        setScores(data)
+        setLoading(false)
+    }
+
+    useEffect(() => { fetchScores() }, [activeTab])
 
     const top10 = scores.slice(0, 10)
 
@@ -207,6 +206,9 @@ export default function LeaderboardScreen() {
             {/* Actions */}
             <div className="flex gap-4 flex-wrap justify-center"
                 style={{ marginTop: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+                <NeonButton color="verde" size="sm" onClick={fetchScores} disabled={loading}>
+                    {loading ? 'CARGANDO...' : '↻ REFRESCAR'}
+                </NeonButton>
                 <NeonButton color="cyan" size="sm" onClick={() => navigate('/')}>
                     ← INICIO
                 </NeonButton>
