@@ -25,6 +25,10 @@ const DIFF_LABELS = {
     facil: { text: 'FÁCIL', color: '#00FF41' },
     medio: { text: 'MEDIO', color: '#FFD700' },
     dificil: { text: 'DIFÍCIL', color: '#FF0040' },
+    basico: { text: 'BÁSICO', color: '#00FF41' },
+    intermedio: { text: 'INTERMEDIO', color: '#00FFFF' },
+    avanzado: { text: 'AVANZADO', color: '#FF6B00' },
+    experto: { text: 'EXPERTO', color: '#FF0040' },
 }
 
 export default function LeaderboardScreen() {
