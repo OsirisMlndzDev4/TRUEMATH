@@ -148,6 +148,41 @@ h6 {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* ─── NEON SIGN FLICKER-ON (home intro) ─── */
+@keyframes neon-flicker-on {
+  0%   { opacity: 0;    text-shadow: none; }
+  4%   { opacity: 0.9;  text-shadow: 0 0 20px #00FFFFCC, 0 0 60px #00FFFF40; }
+  6%   { opacity: 0;    text-shadow: none; }
+  10%  { opacity: 0.5;  text-shadow: 0 0 8px #00FFFF60; }
+  11%  { opacity: 0;    text-shadow: none; }
+  18%  { opacity: 0;    text-shadow: none; }
+  22%  { opacity: 1;    text-shadow: 0 0 20px #00FFFFCC, 0 0 50px #00FFFF60; }
+  25%  { opacity: 0.15; text-shadow: 0 0 4px #00FFFF30; }
+  27%  { opacity: 0.85; text-shadow: 0 0 15px #00FFFFAA, 0 0 40px #00FFFF40; }
+  29%  { opacity: 0;    text-shadow: none; }
+  36%  { opacity: 0;    text-shadow: none; }
+  39%  { opacity: 1;    text-shadow: 0 0 25px #00FFFFCC, 0 0 60px #00FFFF80; }
+  41%  { opacity: 0.35; text-shadow: 0 0 8px #00FFFF40; }
+  43%  { opacity: 1;    text-shadow: 0 0 20px #00FFFFCC, 0 0 50px #00FFFF60; }
+  45%  { opacity: 0.45; text-shadow: 0 0 10px #00FFFF60; }
+  48%  { opacity: 1;    text-shadow: 0 0 25px #00FFFFCC, 0 0 60px #00FFFF80, 0 0 100px #00FFFF30; }
+  53%  { opacity: 0.75; text-shadow: 0 0 15px #00FFFFAA, 0 0 40px #00FFFF60; }
+  56%  { opacity: 1;    text-shadow: 0 0 30px #00FFFFDD, 0 0 70px #00FFFF80, 0 0 100px #00FFFF30; }
+  62%  { opacity: 0.88; text-shadow: 0 0 20px #00FFFFBB, 0 0 50px #00FFFF60; }
+  66%  { opacity: 1;    text-shadow: 0 0 25px #00FFFFCC, 0 0 60px #00FFFF80, 0 0 100px #00FFFF30; }
+  76%  { opacity: 0.93; text-shadow: 0 0 20px #00FFFFBB, 0 0 50px #00FFFF70; }
+  80%  { opacity: 1;    text-shadow: 0 0 35px #00FFFFDD, 0 0 80px #00FFFF80, 0 0 140px #00FFFF30; }
+  100% { opacity: 1;    text-shadow: 0 0 20px #00FFFF80, 0 0 40px #00FFFF40, 0 0 80px #00FFFF20; }
+}
+
+@keyframes neon-line-extend {
+  0%   { transform: scaleX(0); opacity: 0; }
+  40%  { transform: scaleX(0); opacity: 0; }
+  60%  { transform: scaleX(0.3); opacity: 0.6; }
+  80%  { transform: scaleX(0.7); opacity: 0.8; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+
 /* ─── BLINK CURSOR ─── */
 @keyframes blink-cursor {
 

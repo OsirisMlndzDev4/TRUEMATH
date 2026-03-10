@@ -17,14 +17,13 @@ import {
     boolToChip,
 } from '../../utils/truthFinderEngine'
 import { saveScore, checkNameExists } from '../../utils/leaderboard'
+import { playCorrect, playError, playSuccess, playVictory, playAlarm, playStamp } from '../../utils/sounds'
 import './TruthFinderGame.css'
 
 /* ══════════════════════════════════════════
    CONSTANTES
    ══════════════════════════════════════════ */
 const MAX_ALERT = 5              // errores máximos antes de reiniciar
-// ⚠️ DEV_MODE — Poner en false para producción. Buscar 'DEV_MODE' para eliminar.
-const DEV_MODE = true
 const POINTS_PER_CELL = 10       // puntos por celda correcta
 const POINTS_CLASSIFY = 50       // puntos por clasificar bien
 
@@ -825,13 +824,14 @@ export default function TruthFinderGame() {
         const isCorrect = chipValue === expected
 
         if (isCorrect) {
+            playCorrect()
             setPlayerAnswers((prev) => ({
                 ...prev,
                 [rowIdx]: { value: chipValue, status: 'correct' },
             }))
             setScore((prev) => prev + POINTS_PER_CELL)
         } else {
-            // Mostrar brevemente el error y luego limpiar
+            playError()
             setPlayerAnswers((prev) => ({
                 ...prev,
                 [rowIdx]: { value: chipValue, status: 'incorrect' },
@@ -872,10 +872,10 @@ export default function TruthFinderGame() {
             const segTable = tableDataRef.current
 
             setTimeout(() => {
+                playStamp()
                 setCompletedSegs((prev) => new Set([...prev, completedSeg.id]))
                 setPlayerAnswers({})
 
-                // Añadir columna de resultados a la tabla acumulada
                 setAccumulatedTable((prev) => {
                     if (!prev) return prev
                     return {
@@ -884,9 +884,7 @@ export default function TruthFinderGame() {
                     }
                 })
 
-                // ¿Hay más segmentos?
                 if (activeSegIdx + 1 < segments.length) {
-                    // Mostrar animación de revelación antes del siguiente
                     setRevealingSegLabel(completedSeg.label)
                     setGamePhase('revealing')
                     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -932,6 +930,7 @@ export default function TruthFinderGame() {
     /** Glitch reset */
     useEffect(() => {
         if (gamePhase === 'glitch') {
+            playAlarm()
             const timer = setTimeout(() => {
                 setGamePhase('intro')
                 setAlertLevel(0)
@@ -946,9 +945,12 @@ export default function TruthFinderGame() {
         const isCorrect = verdict === level.classification
         setClassifyResult(isCorrect ? 'correct' : 'incorrect')
         if (isCorrect) {
+            playSuccess()
             const timeBonus = Math.max(25, Math.round(200 * (timeLeft / maxTime)))
             setLastTimeBonus(timeBonus)
             setScore((prev) => prev + POINTS_CLASSIFY + timeBonus)
+        } else {
+            playError()
         }
         setTimeout(() => {
             setGamePhase('levelComplete')
@@ -962,6 +964,7 @@ export default function TruthFinderGame() {
             setGamePhase('intro')
             setClassifyResult(null)
         } else {
+            playVictory()
             setGamePhase('allComplete')
         }
     }, [currentLevelIdx])
@@ -1193,32 +1196,6 @@ export default function TruthFinderGame() {
                     </p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    {/* ⚠️ DEV_MODE — Eliminar este bloque para producción */}
-                    {DEV_MODE && (
-                        <button
-                            onClick={() => {
-                                if (currentLevelIdx + 1 < finderLevels.length) {
-                                    setCurrentLevelIdx(prev => prev + 1)
-                                    setGamePhase('intro')
-                                    setClassifyResult(null)
-                                    setAccumulatedTable(null)
-                                }
-                            }}
-                            style={{
-                                background: 'rgba(255,200,0,0.15)',
-                                border: '1px solid rgba(255,200,0,0.4)',
-                                color: '#FFC800',
-                                fontFamily: "'Orbitron'",
-                                fontSize: '0.6rem',
-                                padding: '0.3rem 0.75rem',
-                                cursor: 'pointer',
-                                marginBottom: '0.25rem',
-                                letterSpacing: '0.1em',
-                            }}
-                        >
-                            DEV: SKIP LEVEL →
-                        </button>
-                    )}
                     <div className="tf-score-label">SCORE</div>
                     <div className="tf-score">{score}</div>
                 </div>

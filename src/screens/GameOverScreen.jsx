@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import useGameStore from '../store/useGameStore'
 import { getGrade } from '../utils/logicEngine'
 import { saveScore, checkNameExists } from '../utils/leaderboard'
+import { playVictory } from '../utils/sounds'
 import NeonButton from '../components/ui/NeonButton'
 
 export default function GameOverScreen() {
@@ -16,6 +17,8 @@ export default function GameOverScreen() {
     const [saving, setSaving] = useState(false)
 
     const grade = getGrade(score, currentModule, selectedDifficulty)
+
+    useEffect(() => { playVictory() }, [])
 
     // Count-up animation
     useEffect(() => {

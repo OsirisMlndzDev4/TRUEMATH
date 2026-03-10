@@ -9,6 +9,7 @@ import HolographicCard from '../ui/HolographicCard'
 import ExerciseBanner from './ExerciseBanner'
 import SymbolPalette from './SymbolPalette'
 import ConstructionZone from './ConstructionZone'
+import { playCorrect, playError, playAlarm } from '../../utils/sounds'
 
 // ── Configuración por dificultad ──
 const DIFFICULTY_CONFIG = {
@@ -18,8 +19,6 @@ const DIFFICULTY_CONFIG = {
 }
 const DEFAULT_CONFIG = DIFFICULTY_CONFIG.medium
 
-// ⚠️ DEV_MODE — Poner en false para producción. Buscar 'DEV_MODE' para eliminar.
-const DEV_MODE = true
 
 // Palabras clave en oraciones que mapean a conectores lógicos
 const KEYWORD_HINTS = {
@@ -150,6 +149,7 @@ export default function SyntaxNodeGame() {
     // Handle time expiry
     useEffect(() => {
         if (timeLeft === 0 && !feedback && exercise) {
+            playAlarm()
             setFeedback({ type: 'timeout', solution: formatFormula(exercise.solution) })
         }
     }, [timeLeft, feedback, exercise])
@@ -187,11 +187,13 @@ export default function SyntaxNodeGame() {
         const isCorrect = compareTokenArrays(tokens, exercise.solution)
 
         if (isCorrect) {
+            playCorrect()
             const pts = calcPoints(timeLeft)
             setEarnedPoints(pts)
             submitAnswer(true, pts)
             setFeedback({ type: 'correct', solution: formatFormula(exercise.solution) })
         } else {
+            playError()
             setFeedback({
                 type: 'incorrect',
                 hints: generateHints(exercise, tokens),
@@ -256,28 +258,6 @@ export default function SyntaxNodeGame() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3 sm:gap-6">
-                    {/* ⚠️ DEV_MODE — Eliminar este bloque para producción */}
-                    {DEV_MODE && (
-                        <button
-                            onClick={() => {
-                                setFeedback(null)
-                                setTokens([])
-                                nextExercise()
-                            }}
-                            style={{
-                                background: 'rgba(255,200,0,0.15)',
-                                border: '1px solid rgba(255,200,0,0.4)',
-                                color: '#FFC800',
-                                fontFamily: "'Orbitron'",
-                                fontSize: '0.6rem',
-                                padding: '0.3rem 0.75rem',
-                                cursor: 'pointer',
-                                letterSpacing: '0.1em',
-                            }}
-                        >
-                            DEV: SKIP →
-                        </button>
-                    )}
                     {/* Timer */}
                     <div className="flex flex-col items-center gap-1">
                         <span

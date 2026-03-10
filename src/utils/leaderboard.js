@@ -1,5 +1,10 @@
 import { supabase } from './supabase'
 
+const VALID_MODULES = ['syntax', 'finder']
+const MAX_SCORE = 5000
+const MAX_NAME_LEN = 12
+const NAME_RE = /^[A-Z0-9_]+$/
+
 /**
  * Obtener puntuaciones por módulo.
  * @param {string} module - 'syntax' | 'truth' | 'finder'
@@ -42,14 +47,19 @@ export const checkNameExists = async (module, name) => {
 }
 
 /**
- * Guardar una puntuación.
+ * Guardar una puntuación (con validación pre-envío).
  * @param {string} module - 'syntax' | 'finder'
- * @param {{ name: string, score: number }} entry
+ * @param {{ name: string, score: number, difficulty?: string }} entry
+ * @returns {Promise<boolean>} true si se guardó correctamente
  */
 export const saveScore = async (module, entry) => {
+    if (!VALID_MODULES.includes(module)) return false
+    if (typeof entry.score !== 'number' || entry.score < 0 || entry.score > MAX_SCORE) return false
+    if (!entry.name || entry.name.length > MAX_NAME_LEN || !NAME_RE.test(entry.name)) return false
+
     const row = {
         name: entry.name,
-        score: entry.score,
+        score: Math.round(entry.score),
         module,
     }
     if (entry.difficulty) {
@@ -62,7 +72,9 @@ export const saveScore = async (module, entry) => {
 
     if (error) {
         console.error('Error saving score:', error)
+        return false
     }
+    return true
 }
 
 /**
@@ -83,23 +95,3 @@ export const getAllScores = async () => {
     return data
 }
 
-/**
- * Limpiar puntuaciones.
- * @param {string} module - 'syntax' | 'truth' | 'finder' | 'all'
- */
-export const clearScores = async (module) => {
-    let query
-
-    if (module === 'all') {
-        // Borrar todo — Supabase .delete() requiere un filtro,
-        // así que usamos un filtro que siempre es verdadero.
-        query = supabase.from('scores').delete().gte('id', '00000000-0000-0000-0000-000000000000')
-    } else {
-        query = supabase.from('scores').delete().eq('module', module)
-    }
-
-    const { error } = await query
-    if (error) {
-        console.error('Error clearing scores:', error)
-    }
-}
