@@ -1,7 +1,18 @@
 import { create } from 'zustand'
 import { syntaxExercises } from '../data/syntaxExercises'
-
 import { finderLevels } from '../data/finderLevels'
+
+const DIFF_MAP = { facil: 'easy', medio: 'medium', dificil: 'hard' }
+
+// Fisher-Yates shuffle — mezcla sin repetir
+const shuffle = (arr) => {
+    const a = [...arr]
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+}
 
 const useGameStore = create((set, get) => ({
     currentModule: null,
@@ -11,11 +22,19 @@ const useGameStore = create((set, get) => ({
     timeLeft: 60,
     totalExercises: 0,
     gameFinished: false,
+    selectedDifficulty: null,
 
-    startGame: (module) => {
+    startGame: (module, difficulty = null) => {
         let exercises
-        if (module === 'syntax') exercises = [...syntaxExercises]
-        else exercises = [...finderLevels]
+        if (module === 'syntax') {
+            let all = [...syntaxExercises]
+            if (difficulty && DIFF_MAP[difficulty]) {
+                all = all.filter(e => e.difficulty === DIFF_MAP[difficulty])
+            }
+            exercises = shuffle(all)
+        } else {
+            exercises = shuffle([...finderLevels])
+        }
         set({
             currentModule: module,
             score: 0,
@@ -24,6 +43,7 @@ const useGameStore = create((set, get) => ({
             totalExercises: exercises.length,
             timeLeft: 60,
             gameFinished: false,
+            selectedDifficulty: difficulty,
         })
     },
 
@@ -58,6 +78,7 @@ const useGameStore = create((set, get) => ({
             totalExercises: 0,
             timeLeft: 60,
             gameFinished: false,
+            selectedDifficulty: null,
         })
     },
 

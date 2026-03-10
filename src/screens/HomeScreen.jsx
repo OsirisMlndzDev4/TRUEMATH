@@ -64,9 +64,12 @@ export default function HomeScreen() {
     const startGame = useGameStore((s) => s.startGame)
 
     const handleModule = (module) => {
-        startGame(module)
-        if (module === 'syntax') navigate('/syntax')
-        else if (module === 'finder') navigate('/finder')
+        if (module === 'syntax') {
+            navigate('/syntax-difficulty')
+        } else {
+            startGame(module)
+            navigate('/finder')
+        }
     }
 
     return (
