@@ -174,8 +174,6 @@
 }
 
 .fds-card-label {
-    position: relative;
-    /* for pseudo corner accents */
     font-family: 'Orbitron', sans-serif;
     font-size: 1.15rem;
     font-weight: 700;

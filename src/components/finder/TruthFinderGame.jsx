@@ -37,6 +37,36 @@ const DIFFICULTY_TIMES = {
 }
 
 /* ══════════════════════════════════════════
+   SVG Icon helper — reemplaza emojis
+   ══════════════════════════════════════════ */
+function TfIcon({ name, size = 14, style: extra }) {
+    const d = {
+        clock:       <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+        book:        <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></>,
+        x:           <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+        terminal:    <><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></>,
+        chevRight:   <polyline points="9 18 15 12 9 6"/>,
+        check:       <polyline points="20 6 9 17 4 12"/>,
+        play:        <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/>,
+        circle:      <circle cx="12" cy="12" r="9"/>,
+        lock:        <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+        unlock:      <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></>,
+        grid:        <><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></>,
+        target:      <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>,
+        warning:     <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
+        trophy:      <><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></>,
+        bolt:        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>,
+    }
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...extra }}>
+            {d[name]}
+        </svg>
+    )
+}
+
+/* ══════════════════════════════════════════
    SUB-COMPONENTE: Timer de Hackeo
    ══════════════════════════════════════════ */
 function HackerTimer({ timeLeft, maxTime }) {
@@ -48,7 +78,7 @@ function HackerTimer({ timeLeft, maxTime }) {
 
     return (
         <div className={`tf-timer ${isUrgent ? 'urgent' : ''} ${isCritical ? 'critical' : ''}`}>
-            <div className="tf-timer-label">⏱ TIEMPO ANTES DE DETECCIÓN</div>
+            <div className="tf-timer-label"><TfIcon name="clock" size={12} /> TIEMPO ANTES DE DETECCIÓN</div>
             <div className="tf-timer-bar">
                 <div
                     className="tf-timer-bar-fill"
@@ -77,7 +107,7 @@ function HackerManual({ isOpen, onToggle }) {
     return (
         <>
             <button className="tf-manual-toggle" onClick={onToggle} title="Manual del Hacker">
-                {isOpen ? '✕' : '📖'}
+                {isOpen ? <TfIcon name="x" size={16} /> : <TfIcon name="book" size={18} />}
             </button>
             <AnimatePresence>
                 {isOpen && (
@@ -88,7 +118,7 @@ function HackerManual({ isOpen, onToggle }) {
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <div className="tf-manual-title">⌘ Manual del Hacker</div>
+                        <div className="tf-manual-title"><TfIcon name="terminal" size={14} style={{ marginRight: '0.35rem' }} /> Manual del Hacker</div>
                         {operators.map((op) => (
                             <div key={op.symbol} className="tf-manual-op">
                                 <span className="tf-manual-symbol">{op.symbol}</span>
@@ -131,7 +161,7 @@ function TodoList({ segments, activeIndex, completedSet, focusIndex, scrollBehav
 
     return (
         <div className="tf-sidebar">
-            <div className="tf-todo-title">▸ Pila de Desencriptación</div>
+            <div className="tf-todo-title"><TfIcon name="chevRight" size={12} /> Pila de Desencriptación</div>
             <div className="tf-todo-track" ref={trackRef}>
                 {segments.map((seg, i) => {
                     const isCompleted = completedSet.has(seg.id)
@@ -144,7 +174,7 @@ function TodoList({ segments, activeIndex, completedSet, focusIndex, scrollBehav
                             className={`tf-todo-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
                         >
                             <span className="tf-todo-icon">
-                                {isCompleted ? '✓' : isActive ? '▶' : '○'}
+                                {isCompleted ? <TfIcon name="check" size={12} /> : isActive ? <TfIcon name="play" size={10} /> : <TfIcon name="circle" size={10} />}
                             </span>
                             <div>
                                 <div className="tf-todo-text">
@@ -224,7 +254,7 @@ function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels, activeO
 
     return (
         <div className="tf-formula-panel">
-            <div className="tf-formula-label">⌐ Mensaje Bloqueado</div>
+            <div className="tf-formula-label"><TfIcon name="lock" size={12} style={{ marginRight: '0.35rem' }} /> Mensaje Bloqueado</div>
             
             <div style={{ position: 'relative' }}>
                 <div className="tf-formula-scroll-wrapper" ref={scrollWrapperRef}>
@@ -439,7 +469,7 @@ function MiniTruthTable({ tableData, playerAnswers, onDrop, highlightVars, diffi
     return (
         <div className="tf-table-panel">
             <div className="tf-table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <div className="tf-table-title" style={{ marginBottom: 0 }}>◈ Tabla de Verdad — Sub-segmento</div>
+                <div className="tf-table-title" style={{ marginBottom: 0 }}><TfIcon name="grid" size={13} style={{ marginRight: '0.35rem' }} /> Tabla de Verdad — Sub-segmento</div>
                 
                 {/* Solo mostrar botones de expandir/contraer si la tabla es más grande que el contenedor */}
                 {needsScroll && (
@@ -595,7 +625,7 @@ function ClassificationPanel({ onClassify, fullTable }) {
             transition={{ duration: 0.4, delay: 0.3 }}
         >
             <div className="tf-classify-title">
-                ⟐ Clasifica el Resultado Final
+                <TfIcon name="target" size={14} style={{ marginRight: '0.35rem' }} /> Clasifica el Resultado Final
             </div>
             <p style={{
                 fontSize: '0.75rem',
@@ -959,7 +989,7 @@ export default function TruthFinderGame() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
             >
-                <div className="tf-glitch-text">⚠ ALERTA MÁXIMA ⚠</div>
+                <div className="tf-glitch-text"><TfIcon name="warning" size={24} style={{ marginRight: '0.5rem' }} /> ALERTA MÁXIMA <TfIcon name="warning" size={24} style={{ marginLeft: '0.5rem' }} /></div>
                 <p style={{
                     color: 'rgba(255,0,64,0.7)',
                     fontSize: '0.8rem',
@@ -1008,9 +1038,10 @@ export default function TruthFinderGame() {
                         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                     >
                         <div style={{
-                            fontSize: '3rem',
                             marginBottom: '1rem',
-                        }}>🏆</div>
+                            color: '#FFD700',
+                            filter: 'drop-shadow(0 0 10px rgba(255,215,0,0.5))',
+                        }}><TfIcon name="trophy" size={48} /></div>
                         <div className="tf-intro-title" style={{ color: '#FFD700', textShadow: '0 0 20px rgba(255,215,0,0.6)' }}>
                             MISIÓN COMPLETA
                         </div>
@@ -1111,7 +1142,7 @@ export default function TruthFinderGame() {
                                     marginBottom: '1.5rem',
                                 }}
                             >
-                                ✓ GUARDADO
+                                <TfIcon name="check" size={16} style={{ marginRight: '0.35rem' }} /> GUARDADO
                             </motion.p>
                         )}
 
@@ -1215,7 +1246,7 @@ export default function TruthFinderGame() {
                                 className="tf-neon-btn cyan"
                                 onClick={handleStartLevel}
                             >
-                                ▶ INICIAR DESENCRIPTACIÓN
+                                <TfIcon name="play" size={12} style={{ marginRight: '0.35rem' }} /> INICIAR DESENCRIPTACIÓN
                             </button>
                             <button
                                 className="tf-neon-btn sm magenta"
@@ -1257,7 +1288,7 @@ export default function TruthFinderGame() {
                                     transition={{ duration: 0.4 }}
                                 >
                                     <div className="tf-reveal-title">
-                                        ◈ Desencriptando bloque: <span style={{ color: 'var(--color-cyan)' }}>{revealingSegLabel}</span>
+                                        <TfIcon name="grid" size={13} style={{ marginRight: '0.35rem' }} /> Desencriptando bloque: <span style={{ color: 'var(--color-cyan)' }}>{revealingSegLabel}</span>
                                     </div>
                                     <div className="tf-reveal-bar">
                                         <div className="tf-reveal-bar-fill" />
@@ -1364,8 +1395,8 @@ export default function TruthFinderGame() {
                                             background: 'rgba(10,10,46,0.8)',
                                         }}
                                     >
-                                        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-                                            {classifyResult === 'correct' ? '✓' : '✗'}
+                                        <div style={{ marginBottom: '0.5rem', color: classifyResult === 'correct' ? 'var(--color-verde)' : 'var(--color-red)' }}>
+                                            {classifyResult === 'correct' ? <TfIcon name="check" size={40} /> : <TfIcon name="x" size={40} />}
                                         </div>
                                         <p style={{
                                             fontFamily: "'Orbitron'",
@@ -1412,7 +1443,7 @@ export default function TruthFinderGame() {
                             animate={{ scale: 1 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 12 }}
                         >
-                            <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🔓</div>
+                            <div style={{ marginBottom: '0.75rem', color: '#00FFFF', filter: 'drop-shadow(0 0 10px rgba(0,255,255,0.5))' }}><TfIcon name="unlock" size={48} /></div>
                             <h3 style={{
                                 fontFamily: "'Orbitron'",
                                 fontSize: '1.2rem',
@@ -1449,7 +1480,7 @@ export default function TruthFinderGame() {
                                     textShadow: '0 0 8px rgba(255,215,0,0.4)',
                                     marginBottom: '1.5rem',
                                 }}>
-                                    ⚡ Bonus de tiempo: +{lastTimeBonus} pts
+                                    <TfIcon name="bolt" size={14} style={{ marginRight: '0.25rem' }} /> Bonus de tiempo: +{lastTimeBonus} pts
                                 </p>
                             )}
                             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
