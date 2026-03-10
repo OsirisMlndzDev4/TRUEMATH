@@ -12,7 +12,7 @@ export default function ConstructionZone({ tokens, onRemoveToken }) {
                 Zona de Construcción
             </p>
             <div
-                className="min-h-[60px] flex items-center flex-wrap gap-4 p-5"
+                className="min-h-[50px] sm:min-h-[60px] flex items-center flex-wrap gap-2 sm:gap-4 p-3 sm:p-5"
                 style={{
                     background: 'rgba(0,255,65,0.03)',
                     border: '1px solid rgba(0,255,65,0.3)',
@@ -33,7 +33,7 @@ export default function ConstructionZone({ tokens, onRemoveToken }) {
                                 exit={{ scale: 0, opacity: 0 }}
                                 layout
                                 onClick={() => onRemoveToken(index)}
-                                className="h-12 min-w-[48px] px-6 flex items-center justify-center text-xl font-bold cursor-pointer"
+                                className="h-10 sm:h-12 min-w-[40px] sm:min-w-[48px] px-3 sm:px-6 flex items-center justify-center text-lg sm:text-xl font-bold cursor-pointer"
                                 style={{
                                     fontFamily: "'Share Tech Mono', monospace",
                                     background: bgColor,

@@ -85,7 +85,7 @@ export default function HomeScreen() {
 
             {/* Main content */}
             <motion.div
-                className="relative z-10 flex flex-col items-center gap-10 px-4"
+                className="relative z-10 flex flex-col items-center gap-6 sm:gap-10 px-4 w-full"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
@@ -93,13 +93,13 @@ export default function HomeScreen() {
                 {/* Title */}
                 <div className="text-center">
                     <motion.h1
-                        className="text-5xl md:text-7xl lg:text-8xl font-black text-[#00FFFF] text-glow-cyan animate-pulse-glow"
+                        className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-[#00FFFF] text-glow-cyan animate-pulse-glow"
                         style={{ fontFamily: "'Orbitron', sans-serif" }}
                     >
                         TRUEMATH
                     </motion.h1>
                     <motion.p
-                        className="text-sm md:text-base mt-3 tracking-[0.3em] uppercase text-[#00FFFF]/70"
+                        className="text-xs sm:text-sm md:text-base mt-2 sm:mt-3 tracking-[0.2em] sm:tracking-[0.3em] uppercase text-[#00FFFF]/70"
                         style={{ fontFamily: "'Share Tech Mono', monospace" }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

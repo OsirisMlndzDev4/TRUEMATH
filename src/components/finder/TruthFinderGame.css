@@ -86,6 +86,13 @@
     box-shadow: 2px 2px 6px rgba(0, 255, 255, 0.3);
 }
 
+/* Track interior: en desktop es un simple flex column */
+.tf-todo-track {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
 .tf-todo-title {
     font-family: 'Orbitron', sans-serif;
     font-size: 0.9rem;
@@ -185,58 +192,52 @@
     padding: 1.5rem;
     text-align: center;
     position: relative;
+    overflow: hidden; /* Require this for the gradient absolute positioning */
 }
 
-.tf-formula-panel::before,
-.tf-formula-panel::after {
-    content: '';
+/* Empty block removed */
+
+.tf-formula-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.tf-formula-scroll-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+/* Gradient that overlays the right edge */
+.tf-formula-gradient-overlay {
     position: absolute;
-    width: 14px;
-    height: 14px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 60px;
+    background: linear-gradient(to right, transparent, #0A0A2E);
     pointer-events: none;
-    z-index: 2;
-}
-
-.tf-formula-panel::before {
-    top: -1px;
-    left: -1px;
-    border-top: 2px solid var(--color-cyan);
-    border-left: 2px solid var(--color-cyan);
-    box-shadow: -2px -2px 6px rgba(0, 255, 255, 0.4);
-}
-
-.tf-formula-panel::after {
-    bottom: -1px;
-    right: -1px;
-    border-bottom: 2px solid var(--color-cyan);
-    border-right: 2px solid var(--color-cyan);
-    box-shadow: 2px 2px 6px rgba(0, 255, 255, 0.4);
-}
-
-.tf-formula-label {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.3em;
-    color: rgba(0, 255, 255, 0.5);
-    text-transform: uppercase;
-    margin-bottom: 0.75rem;
+    z-index: 5;
 }
 
 .tf-formula-text {
     font-size: 2.2rem;
     font-weight: bold;
-    letter-spacing: 0.1em;
-    display: flex;
-    justify-content: center;
+    letter-spacing: 0.02em; /* Decreased letter spacing */
+    display: inline-flex;
+    justify-content: center; /* Centrado por defecto */
     align-items: center;
-    gap: 0.3rem;
-    flex-wrap: wrap;
+    gap: 0.1rem; /* Decreased gap between chars */
+    white-space: nowrap; /* Prevent wrap */
+    /* Padding simétrico para evitar que el texto se empuje hacia la izquierda */
+    padding: 0 25px; 
+    min-width: 100%; /* Asegura que el contenedor ocupe todo el ancho para centrar */
 }
 
 .tf-formula-char {
     transition: all 0.3s ease;
-    padding: 0.1rem 0.15rem;
+    padding: 0.05rem 0.05rem; /* Decreased padding */
 }
 
 .tf-formula-char.locked {
@@ -248,6 +249,14 @@
     color: var(--color-cyan);
     text-shadow: 0 0 15px rgba(0, 255, 255, 0.8), 0 0 30px rgba(0, 255, 255, 0.4);
     animation: char-pulse 1.5s ease-in-out infinite;
+}
+
+.tf-formula-char.operand-underline {
+    text-decoration: underline;
+    text-decoration-style: solid;
+    text-decoration-color: var(--color-magenta);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
 }
 
 .tf-formula-char.solved {
@@ -421,8 +430,106 @@
     border: 1px solid var(--color-magenta);
     box-shadow: 0 0 10px rgba(255, 0, 255, 0.3), 0 0 20px rgba(255, 0, 255, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.5);
     padding: 1rem;
-    overflow-x: auto;
     position: relative;
+}
+
+/* ─── SCROLL WRAPPER con indicador de overflow ─── */
+.tf-table-scroll-wrapper {
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    transition: all 0.3s ease;
+}
+
+.tf-table-scroll-wrapper.expanded {
+    /* Mantiene el comportamiento actual (scroll horizontal) */
+    width: 100%;
+}
+
+.tf-table-scroll-wrapper.contracted {
+    /* Forza a que todo quepa en el contenedor actual, encogiendo la tabla */
+    overflow-x: hidden;
+}
+
+.tf-table-scroll-wrapper.expanded .tf-truth-table {
+    /* La tabla usa min-width original para las celdas y no rompe líneas */
+    width: 100%;
+    padding-right: 35px; /* Espacio para el gradiente de overflow */
+}
+
+.tf-table-scroll-wrapper.expanded .tf-truth-table th,
+.tf-table-scroll-wrapper.expanded .tf-truth-table td {
+    white-space: nowrap;
+}
+
+.tf-table-scroll-wrapper.contracted .tf-truth-table {
+    /* La tabla se comprime para caber entera */
+    width: 100%;
+}
+
+.tf-table-scroll-wrapper.contracted .tf-truth-table th,
+.tf-table-scroll-wrapper.contracted .tf-truth-table td {
+    min-width: 0; /* Permite encogerse */
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+    white-space: normal; /* Permite salto de línea si está muy apretado */
+    word-break: break-all;
+}
+
+/* En móvil, contraído implica fuente más chica para que quepa */
+@media (max-width: 768px) {
+    .tf-table-scroll-wrapper.contracted .tf-truth-table {
+        font-size: 0.75rem;
+    }
+    .tf-table-scroll-wrapper.contracted .tf-truth-table th {
+        font-size: 0.55rem;
+        padding: 0.15rem;
+    }
+    .tf-table-scroll-wrapper.contracted .tf-truth-table td {
+        padding: 0.15rem;
+    }
+    .tf-table-scroll-wrapper.contracted .tf-drop-cell {
+        width: 32px;
+        height: 24px;
+    }
+}
+
+/* Gradient overlay en el borde derecho — igual que FormulaPanel */
+.tf-table-gradient-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 35px;
+    background: linear-gradient(to right, transparent, #0A0A2E);
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Flecha parpadeante que indica scroll horizontal */
+.tf-table-gradient-overlay::after {
+    content: '»';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: rgba(255, 0, 255, 0.6);
+    text-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+    animation: scroll-hint-pulse 1.8s ease-in-out infinite;
+    letter-spacing: -0.2em;
+}
+
+@keyframes scroll-hint-pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: translateY(-50%) translateX(0);
+    }
+    50% {
+        opacity: 0.9;
+        transform: translateY(-50%) translateX(3px);
+    }
 }
 
 .tf-table-panel::before,
@@ -473,8 +580,8 @@
     font-family: 'Orbitron', sans-serif;
     font-size: 0.85rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
-    padding: 0.5rem 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 0.45rem 0.55rem;
     border-bottom: 1px solid rgba(255, 0, 255, 0.3);
     color: var(--color-magenta);
     text-shadow: 0 0 6px rgba(255, 0, 255, 0.4);
@@ -489,7 +596,7 @@
 }
 
 .tf-truth-table td {
-    padding: 0.5rem 0.85rem;
+    padding: 0.45rem 0.55rem;
     font-weight: 600;
     text-align: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -1200,39 +1307,271 @@
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
-    .tf-main {
+    .tf-header {
         flex-direction: column;
-        padding: 0.75rem;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        align-items: stretch;
     }
 
+    .tf-main {
+        flex-direction: column;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* ── Sidebar → Carrusel horizontal ── */
     .tf-sidebar {
         width: 100%;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.5rem 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    /* Quitar decoraciones de esquina en mobile */
+    .tf-sidebar::before,
+    .tf-sidebar::after {
+        display: none;
+    }
+
+    .tf-todo-title {
+        font-size: 0.7rem;
+        letter-spacing: 0.15em;
+        padding: 0 0.75rem;
+        margin-bottom: 0.15rem;
+    }
+
+    /* Track → carrusel snap horizontal */
+    .tf-todo-track {
         flex-direction: row;
+        gap: 0;
         overflow-x: auto;
-        gap: 0.5rem;
-        padding-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+
+        /* Padding lateral para "peek" de tarjetas adyacentes */
+        padding: 0.4rem calc((100% - 85%) / 2);
+
+        /* Esconder scrollbar */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .tf-todo-track::-webkit-scrollbar {
+        display: none;
     }
 
     .tf-todo-item {
-        min-width: 160px;
-        font-size: 0.65rem;
+        flex: 0 0 85%;
+        min-width: 0;
+        scroll-snap-align: center;
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        background: rgba(10, 10, 46, 0.7);
+        margin: 0 0.35rem;
     }
 
-    .tf-formula-text {
-        font-size: 1.3rem;
+    .tf-todo-item.active {
+        border-color: var(--color-cyan);
+        box-shadow: 0 0 12px rgba(0, 255, 255, 0.35), inset 0 0 10px rgba(0, 255, 255, 0.06);
+        background: rgba(0, 255, 255, 0.06);
     }
 
-    .tf-header {
+    .tf-formula-panel {
         padding: 0.75rem;
     }
 
+    .tf-formula-text {
+        font-size: 1.2rem;
+        gap: 0.05rem; /* Decreased gap */
+        letter-spacing: 0em; /* No extra letter spacing on mobile */
+    }
+
+    .tf-formula-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Timer */
+    .tf-timer {
+        padding: 0.35rem 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .tf-timer-label {
+        font-size: 0.6rem;
+    }
+
+    .tf-timer-value {
+        font-size: 0.9rem;
+        min-width: 2.5rem;
+    }
+
+    /* Alert bar */
+    .tf-alert-bar-container {
+        height: 20px;
+    }
+
+    .tf-alert-label {
+        font-size: 0.6rem;
+    }
+
+    /* Table */
+    .tf-table-panel {
+        padding: 0.5rem;
+    }
+
+    .tf-table-title {
+        font-size: 0.7rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .tf-truth-table {
+        font-size: 0.85rem;
+    }
+
+    .tf-truth-table th {
+        font-size: 0.65rem;
+        padding: 0.35rem 0.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    .tf-truth-table td {
+        padding: 0.35rem 0.5rem;
+    }
+
+    .tf-truth-table td.var-cell {
+        font-size: 0.85rem;
+    }
+
+    /* Chips */
+    .tf-chips-container {
+        gap: 0.75rem;
+        padding: 0.5rem;
+    }
+
+    .tf-chip {
+        width: 46px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    /* Drop cells */
+    .tf-drop-cell {
+        width: 40px;
+        height: 30px;
+    }
+
+    .tf-drop-cell.filled {
+        font-size: 0.95rem;
+    }
+
+    .tf-cell-question {
+        font-size: 0.95rem;
+    }
+
+    /* Ghost */
+    .tf-drag-ghost {
+        width: 50px;
+        height: 38px;
+        font-size: 1.1rem;
+    }
+
+    /* Manual panel */
     .tf-manual-panel {
         width: calc(100vw - 2rem);
         right: 1rem;
         left: 1rem;
+        max-height: 350px;
+    }
+
+    .tf-manual-toggle {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+    }
+
+    /* Reveal */
+    .tf-reveal-panel {
+        padding: 0.75rem;
+    }
+
+    .tf-reveal-title {
+        font-size: 0.7rem;
+    }
+
+    /* Classification */
+    .tf-classify-panel {
+        padding: 1rem;
+    }
+
+    .tf-classify-title {
+        font-size: 0.8rem;
+        letter-spacing: 0.2em;
+        margin-bottom: 1rem;
     }
 
     .tf-classify-buttons {
         flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .tf-classify-btn {
+        font-size: 0.7rem;
+        padding: 0.6rem 1rem;
+    }
+
+    /* Level complete */
+    .tf-level-complete-card {
+        padding: 1.5rem;
+    }
+
+    /* Intro */
+    .tf-intro {
+        padding: 1rem;
+    }
+
+    .tf-intro-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .tf-intro-title {
+        font-size: 1.2rem;
+    }
+
+    .tf-intro-formula {
+        font-size: 1.3rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Neon buttons */
+    .tf-neon-btn {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.7rem;
+    }
+
+    .tf-neon-btn.sm {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.55rem;
+    }
+
+    /* Score */
+    .tf-score {
+        font-size: 1rem;
+    }
+
+    .tf-score-label {
+        font-size: 0.45rem;
+    }
+
+    /* Glitch */
+    .tf-glitch-text {
+        font-size: 1.2rem;
     }
 }

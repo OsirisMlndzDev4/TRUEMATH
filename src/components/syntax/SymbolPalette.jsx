@@ -14,7 +14,7 @@ export default function SymbolPalette({ onAddToken, availableVars = ['p', 'q'] }
             >
                 Paleta de Símbolos
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {/* Variable tokens */}
                 {varsToShow.map((token) => (
                     <motion.button
@@ -22,7 +22,7 @@ export default function SymbolPalette({ onAddToken, availableVars = ['p', 'q'] }
                         onClick={() => onAddToken(token)}
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.92 }}
-                        className="w-12 h-12 flex items-center justify-center text-lg font-bold cursor-pointer"
+                        className="w-[38px] h-[38px] sm:w-12 sm:h-12 flex items-center justify-center text-base sm:text-lg font-bold cursor-pointer"
                         style={{
                             fontFamily: "'Share Tech Mono', monospace",
                             background: 'rgba(0,255,255,0.05)',
@@ -37,7 +37,7 @@ export default function SymbolPalette({ onAddToken, availableVars = ['p', 'q'] }
                 ))}
 
                 {/* Divider */}
-                <div className="w-px h-12 bg-white/10 mx-1" />
+                <div className="w-px h-[38px] sm:h-12 bg-white/10 mx-0.5 sm:mx-1" />
 
                 {/* Operator tokens */}
                 {OPERATORS.map((token) => (
@@ -46,7 +46,7 @@ export default function SymbolPalette({ onAddToken, availableVars = ['p', 'q'] }
                         onClick={() => onAddToken(token)}
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.92 }}
-                        className="w-12 h-12 flex items-center justify-center text-lg font-bold cursor-pointer"
+                        className="w-[38px] h-[38px] sm:w-12 sm:h-12 flex items-center justify-center text-base sm:text-lg font-bold cursor-pointer"
                         style={{
                             fontFamily: "'Share Tech Mono', monospace",
                             background: 'rgba(255,0,255,0.05)',

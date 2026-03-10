@@ -18,7 +18,7 @@ export default function ScoreDisplay({ score, label = 'SCORE', color = '#00FFFF'
                 {label}
             </span>
             <motion.span
-                className="text-3xl font-bold font-[Orbitron]"
+                className="text-2xl sm:text-3xl font-bold font-[Orbitron]"
                 style={{ color: color, textShadow: `0 0 12px ${color}80, 0 0 24px ${color}40` }}
             >
                 {display}

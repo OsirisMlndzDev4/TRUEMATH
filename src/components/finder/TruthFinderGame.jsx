@@ -107,36 +107,60 @@ function HackerManual({ isOpen, onToggle }) {
 
 /* ══════════════════════════════════════════
    SUB-COMPONENTE: To-Do List lateral
+   (carrusel horizontal en mobile)
    ══════════════════════════════════════════ */
-function TodoList({ segments, activeIndex, completedSet }) {
+function TodoList({ segments, activeIndex, completedSet, focusIndex, scrollBehavior = 'smooth' }) {
+    const trackRef = useRef(null)
+
+    // Índice al que se debe centrar el carrusel
+    const scrollTarget = focusIndex !== undefined ? focusIndex : activeIndex
+
+    // Auto-scroll al card indicado cuando cambia
+    useEffect(() => {
+        const track = trackRef.current
+        if (!track) return
+        const targetCard = track.querySelector(`[data-index="${scrollTarget}"]`)
+        if (targetCard) {
+            targetCard.scrollIntoView({
+                behavior: scrollBehavior,
+                inline: 'center',
+                block: 'nearest',
+            })
+        }
+    }, [scrollTarget, scrollBehavior])
+
     return (
         <div className="tf-sidebar">
             <div className="tf-todo-title">▸ Pila de Desencriptación</div>
-            {segments.map((seg, i) => {
-                const isCompleted = completedSet.has(seg.id)
-                const isActive = i === activeIndex && !isCompleted
-                return (
-                    <div
-                        key={seg.id}
-                        className={`tf-todo-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
-                    >
-                        <span className="tf-todo-icon">
-                            {isCompleted ? '✓' : isActive ? '▶' : '○'}
-                        </span>
-                        <div>
-                            <div className="tf-todo-text">
-                                {seg.description}
+            <div className="tf-todo-track" ref={trackRef}>
+                {segments.map((seg, i) => {
+                    const isCompleted = completedSet.has(seg.id)
+                    const isActive = i === activeIndex && !isCompleted
+                    return (
+                        <div
+                            key={seg.id}
+                            data-index={i}
+                            data-active={isActive}
+                            className={`tf-todo-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
+                        >
+                            <span className="tf-todo-icon">
+                                {isCompleted ? '✓' : isActive ? '▶' : '○'}
+                            </span>
+                            <div>
+                                <div className="tf-todo-text">
+                                    {seg.description}
+                                </div>
+                                <div style={{ fontSize: '0.65rem', color: 'rgba(0,255,255,0.4)', marginTop: '0.15rem' }}>
+                                    {seg.label}
+                                </div>
                             </div>
-                            <div style={{ fontSize: '0.65rem', color: 'rgba(0,255,255,0.4)', marginTop: '0.15rem' }}>
-                                {seg.label}
-                            </div>
+                            {isCompleted && (
+                                <span className="tf-todo-stamp">Desencriptada</span>
+                            )}
                         </div>
-                        {isCompleted && (
-                            <span className="tf-todo-stamp">Desencriptada</span>
-                        )}
-                    </div>
-                )
-            })}
+                    )
+                })}
+            </div>
         </div>
     )
 }
@@ -144,13 +168,25 @@ function TodoList({ segments, activeIndex, completedSet }) {
 /* ══════════════════════════════════════════
    SUB-COMPONENTE: Fórmula con highlighting
    ══════════════════════════════════════════ */
-function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels }) {
+function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels, activeOperands = [] }) {
     // Descomponer la fórmula en "tokens" visibles
     const chars = formulaStr.split('')
 
     // Determinar qué caracteres pertenecen al segmento activo
     const activeStart = formulaStr.indexOf(activeSegmentLabel)
-    const activeEnd = activeStart >= 0 ? activeStart + activeSegmentLabel.length : -1
+    const activeEnd = activeStart >= 0 && activeSegmentLabel ? activeStart + activeSegmentLabel.length : -1
+
+    const activeOperandsRanges = []
+    if (activeStart >= 0 && activeSegmentLabel && activeOperands.length > 0) {
+        let searchOffset = activeStart
+        for (const op of activeOperands) {
+            const opIdx = formulaStr.indexOf(op, searchOffset)
+            if (opIdx >= activeStart && opIdx < activeEnd) {
+                activeOperandsRanges.push({ start: opIdx, end: opIdx + op.length })
+                searchOffset = opIdx + op.length
+            }
+        }
+    }
 
     // Escalar tamaño de fuente proporcionalmente a la longitud de la fórmula
     const len = formulaStr.length
@@ -163,32 +199,43 @@ function FormulaPanel({ formulaStr, activeSegmentLabel, completedLabels }) {
     return (
         <div className="tf-formula-panel">
             <div className="tf-formula-label">⌐ Mensaje Bloqueado</div>
-            <div
-                className="tf-formula-text"
-                style={{ fontSize: `${dynamicFontSize}rem`, whiteSpace: 'nowrap' }}
-            >
-                {chars.map((char, i) => {
-                    let cls = 'tf-formula-char'
-                    // Verificar si el carácter está dentro de un segmento resuelto
-                    const isSolved = completedLabels.some((label) => {
-                        const s = formulaStr.indexOf(label)
-                        return s >= 0 && i >= s && i < s + label.length
-                    })
+            
+            <div style={{ position: 'relative' }}>
+                <div className="tf-formula-scroll-wrapper">
+                    <div
+                        className="tf-formula-text"
+                        style={{ fontSize: `${dynamicFontSize}rem`, whiteSpace: 'nowrap' }}
+                    >
+                        {chars.map((char, i) => {
+                            let cls = 'tf-formula-char'
+                            // Verificar si el carácter está dentro de un segmento resuelto
+                            const isSolved = completedLabels.some((label) => {
+                                const s = formulaStr.indexOf(label)
+                                return s >= 0 && i >= s && i < s + label.length
+                            })
 
-                    if (isSolved) {
-                        cls += ' solved'
-                    } else if (activeStart >= 0 && i >= activeStart && i < activeEnd) {
-                        cls += ' active'
-                    } else if (!isSolved) {
-                        cls += ' locked'
-                    }
+                            if (isSolved) {
+                                cls += ' solved'
+                            } else if (activeStart >= 0 && i >= activeStart && i < activeEnd) {
+                                cls += ' active'
+                                const isOperand = activeOperandsRanges.some((r) => i >= r.start && i < r.end)
+                                if (isOperand) {
+                                    cls += ' operand-underline'
+                                }
+                            } else if (!isSolved) {
+                                cls += ' locked'
+                            }
 
-                    return (
-                        <span key={i} className={cls}>
-                            {char === ' ' ? '\u00A0' : char}
-                        </span>
-                    )
-                })}
+                            return (
+                                <span key={i} className={cls}>
+                                    {char === ' ' ? '\u00A0' : char}
+                                </span>
+                            )
+                        })}
+                    </div>
+                </div>
+                {/* Overlay difuminado a la derecha para indicar scroll */}
+                <div className="tf-formula-gradient-overlay" />
             </div>
         </div>
     )
@@ -258,15 +305,58 @@ function AlertBar({ current, max }) {
    SUB-COMPONENTE: Mini Truth Table interactiva
    Custom drag & drop con ghost visible.
    ══════════════════════════════════════════ */
-function MiniTruthTable({ tableData, playerAnswers, onDrop, highlightVars }) {
+function MiniTruthTable({ tableData, playerAnswers, onDrop, highlightVars, difficulty }) {
     const { columns, rows } = tableData
     const resultColIndex = columns.length - 1
+    const [isExpanded, setIsExpanded] = useState(true) // Expandido por defecto
+    const isBasic = difficulty === 'BÁSICO'
 
     // ── Custom drag state ──
     const [dragging, setDragging] = useState(null)       // { value: 'V'|'F' }
     const [ghostPos, setGhostPos] = useState({ x: 0, y: 0 })
     const [hoverRow, setHoverRow] = useState(null)       // row index being hovered
     const dropRefs = useRef({})                          // refs para las celdas drop
+    const scrollWrapperRef = useRef(null)
+    const [showScrollHint, setShowScrollHint] = useState(false)
+    const [needsScroll, setNeedsScroll] = useState(false) // ¿La tabla realmente necesita scroll?
+
+    // Detectar si la tabla tiene overflow horizontal (calculado sobre su tamaño natural expandido)
+    useEffect(() => {
+        const el = scrollWrapperRef.current
+        if (!el) return
+        const check = () => {
+            // Guardamos el ancho de la ventana local
+            const clientW = el.clientWidth
+            
+            // Para saber si "necesita scroll", tenemos que mirar su tamaño
+            // natural. Si está contraído, temporalmente le quitamos la clase
+            // para medir su scrollWidth real, y se la devolvemos al instante.
+            const wasContracted = el.classList.contains('contracted')
+            if (wasContracted) el.classList.remove('contracted')
+            
+            const naturalScrollWidth = el.scrollWidth
+            
+            if (wasContracted) el.classList.add('contracted')
+
+            const hasOv = naturalScrollWidth > clientW
+            setNeedsScroll(hasOv)
+            
+            // La flecha sí depende del scroll actual
+            const currentScrollWidth = el.scrollWidth
+            const atEnd = el.scrollLeft + clientW >= currentScrollWidth - 2
+            
+            // Solo mostramos hint si está expandido, hay overflow y no llegó al final
+            setShowScrollHint(isExpanded && hasOv && !atEnd)
+        }
+        check()
+        const observer = new ResizeObserver(check)
+        observer.observe(el)
+        el.addEventListener('scroll', check, { passive: true })
+        return () => {
+            observer.disconnect()
+            el.removeEventListener('scroll', check)
+        }
+    }, [columns.length])
 
     // Iniciar arrastre
     const handleDragStart = useCallback((value, clientX, clientY) => {
@@ -324,16 +414,59 @@ function MiniTruthTable({ tableData, playerAnswers, onDrop, highlightVars }) {
 
     return (
         <div className="tf-table-panel">
-            <div className="tf-table-title">◈ Tabla de Verdad — Sub-segmento</div>
+            <div className="tf-table-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div className="tf-table-title" style={{ marginBottom: 0 }}>◈ Tabla de Verdad — Sub-segmento</div>
+                
+                {/* Solo mostrar botones de expandir/contraer si la tabla es más grande que el contenedor */}
+                {needsScroll && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            className={`tf-neon-btn sm ${!isExpanded ? 'cyan' : ''}`}
+                            title="Contraer tabla"
+                            style={{ padding: '0.35rem', opacity: !isExpanded ? 1 : 0.5, border: !isExpanded ? undefined : '1px solid rgba(0,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            onClick={() => setIsExpanded(false)}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="4 14 10 14 10 20"></polyline>
+                                <polyline points="20 10 14 10 14 4"></polyline>
+                                <line x1="14" y1="10" x2="21" y2="3"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                        </button>
+                        <button
+                            className={`tf-neon-btn sm ${isExpanded ? 'cyan' : ''}`}
+                            title="Expandir tabla (Scroll/Arrastre)"
+                            style={{ padding: '0.35rem', opacity: isExpanded ? 1 : 0.5, border: isExpanded ? undefined : '1px solid rgba(0,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            onClick={() => setIsExpanded(true)}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <polyline points="9 21 3 21 3 15"></polyline>
+                                <line x1="21" y1="3" x2="14" y2="10"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                        </button>
+                    </div>
+                )}
+            </div>
 
-            {/* Fichas arrastrables */}
+            {/* Fichas arrastrables (Solo en nivel Básico) */}
             <div className="tf-chips-container">
-                <DragChip value="V" onDragStart={handleDragStart} />
-                <DragChip value="F" onDragStart={handleDragStart} />
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '1rem' }}>
+                {isBasic && (
+                    <>
+                        <DragChip value="V" onDragStart={handleDragStart} />
+                        <DragChip value="F" onDragStart={handleDragStart} />
+                        <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', marginLeft: '1rem' }}>
+                            O CLICK:
+                        </span>
+                    </>
+                )}
+                {!isBasic && (
                     <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>
-                        O CLICK:
+                        SELECCIONA RESPUESTA (CLICK):
                     </span>
+                )}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <button
                         className={`tf-neon-btn sm ${clickMode === 'V' ? 'verde' : 'cyan'}`}
                         style={{
@@ -357,63 +490,69 @@ function MiniTruthTable({ tableData, playerAnswers, onDrop, highlightVars }) {
                 </div>
             </div>
 
-            <table className="tf-truth-table">
-                <thead>
-                    <tr>
-                        {columns.map((col, ci) => (
-                            <th
-                                key={ci}
-                                className={ci === resultColIndex ? 'result-col' : ''}
-                            >
-                                {col}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map((row, ri) => {
-                        const answer = playerAnswers[ri]
-                        return (
-                            <tr key={ri}>
-                                {/* Variable columns */}
-                                {row.values.map((val, ci) => (
-                                    <td
+            <div style={{ position: 'relative', overflow: 'hidden' }}>
+                <div className={`tf-table-scroll-wrapper ${isExpanded ? 'expanded' : 'contracted'}`} ref={scrollWrapperRef}>
+                    <table className="tf-truth-table">
+                        <thead>
+                            <tr>
+                                {columns.map((col, ci) => (
+                                    <th
                                         key={ci}
-                                        className={`var-cell ${highlightVars.includes(columns[ci]) ? 'highlight' : ''}`}
+                                        className={ci === resultColIndex ? 'result-col' : ''}
                                     >
-                                        {boolToChip(val)}
-                                    </td>
+                                        {col}
+                                    </th>
                                 ))}
-                                {/* Result column (drop target) */}
-                                <td style={{ padding: '0.3rem' }}>
-                                    {answer !== undefined ? (
-                                        <div
-                                            className={`tf-drop-cell filled ${answer.status}`}
-                                        >
-                                            {answer.value}
-                                        </div>
-                                    ) : (
-                                        <div
-                                            ref={(el) => { dropRefs.current[ri] = el }}
-                                            className={`tf-drop-cell ${dragging && hoverRow === ri ? 'drag-over' : ''}`}
-                                            onClick={() => {
-                                                if (clickMode) {
-                                                    onDrop(ri, clickMode)
-                                                }
-                                            }}
-                                        >
-                                            <span className="tf-cell-question">?</span>
-                                        </div>
-                                    )}
-                                </td>
                             </tr>
-                        )
-                    })}
-                </tbody>
-            </table>
+                        </thead>
+                        <tbody>
+                            {rows.map((row, ri) => {
+                                const answer = playerAnswers[ri]
+                                return (
+                                    <tr key={ri}>
+                                        {/* Variable columns */}
+                                        {row.values.map((val, ci) => (
+                                            <td
+                                                key={ci}
+                                                className={`var-cell ${highlightVars.includes(columns[ci]) ? 'highlight' : ''}`}
+                                            >
+                                                {boolToChip(val)}
+                                            </td>
+                                        ))}
+                                        {/* Result column (drop target) */}
+                                        <td style={{ padding: '0.3rem' }}>
+                                            {answer !== undefined ? (
+                                                <div
+                                                    className={`tf-drop-cell filled ${answer.status}`}
+                                                >
+                                                    {answer.value}
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    ref={(el) => { dropRefs.current[ri] = el }}
+                                                    className={`tf-drop-cell ${dragging && hoverRow === ri ? 'drag-over' : ''}`}
+                                                    onClick={() => {
+                                                        if (clickMode) {
+                                                            onDrop(ri, clickMode)
+                                                        }
+                                                    }}
+                                                >
+                                                    <span className="tf-cell-question">?</span>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+                {/* Gradient overlay — solo visible si hay overflow y no se llegó al final */}
+                {showScrollHint && <div className="tf-table-gradient-overlay" />}
+            </div>
 
-            {/* Ghost flotante */}
-            <DragGhost value={dragging?.value} x={ghostPos.x} y={ghostPos.y} />
+            {/* Ghost flotante (Solo si drag está habilitado) */}
+            {isBasic && <DragGhost value={dragging?.value} x={ghostPos.x} y={ghostPos.y} />}
         </div>
     )
 }
@@ -445,7 +584,7 @@ function ClassificationPanel({ onClassify, fullTable }) {
 
             {/* Tabla resumen de resultados */}
             {fullTable && (
-                <div style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
+                <div className="tf-table-scroll-wrapper" style={{ marginBottom: '1.25rem' }}>
                     <table className="tf-truth-table">
                         <thead>
                             <tr>
@@ -542,6 +681,9 @@ export default function TruthFinderGame() {
 
     // Referencia al segmento actual pre-calculado
     const tableDataRef = useRef(null)
+
+    // Referencia al tope del contenedor para scroll-to-top
+    const topRef = useRef(null)
 
     // ── Datos del nivel actual ──
     const level = finderLevels[currentLevelIdx]
@@ -693,9 +835,11 @@ export default function TruthFinderGame() {
                     // Mostrar animación de revelación antes del siguiente
                     setRevealingSegLabel(completedSeg.label)
                     setGamePhase('revealing')
+                    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 } else {
                     // Todos los segmentos completos → fase de clasificación
                     setGamePhase('classify')
+                    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
             }, 600)
         }
@@ -964,6 +1108,7 @@ export default function TruthFinderGame() {
 
     return (
         <motion.div
+            ref={topRef}
             className="tf-container"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1060,170 +1205,171 @@ export default function TruthFinderGame() {
                 </div>
             )}
 
-            {/* ── REVEALING ANIMATION ── */}
-            {gamePhase === 'revealing' && accumulatedTable && (
+            {/* ── REVEALING + PLAYING + CLASSIFY — unified layout ── */}
+            {(gamePhase === 'revealing' || gamePhase === 'playing' || gamePhase === 'classify') && (
                 <div className="tf-main">
+                    {/* Sidebar: single persistent TodoList */}
                     <TodoList
                         segments={segments}
                         activeIndex={activeSegIdx}
                         completedSet={completedSegs}
-                    />
-                    <div className="tf-center">
-                        <FormulaPanel
-                            formulaStr={level.formulaStr}
-                            activeSegmentLabel=''
-                            completedLabels={completedLabels}
-                        />
-                        <motion.div
-                            className="tf-reveal-panel"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.4 }}
-                        >
-                            <div className="tf-reveal-title">
-                                ◈ Desencriptando bloque: <span style={{ color: 'var(--color-cyan)' }}>{revealingSegLabel}</span>
-                            </div>
-                            <div className="tf-reveal-bar">
-                                <div className="tf-reveal-bar-fill" />
-                            </div>
-                            <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-                                <table className="tf-truth-table">
-                                    <thead>
-                                        <tr>
-                                            {accumulatedTable.columns.map((col, ci) => (
-                                                <th
-                                                    key={ci}
-                                                    className={ci === accumulatedTable.columns.length - 1 ? 'result-col tf-new-col' : ''}
-                                                >
-                                                    {col}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {accumulatedTable.rows.map((row, ri) => (
-                                            <tr key={ri}>
-                                                {row.map((val, ci) => (
-                                                    <td
-                                                        key={ci}
-                                                        className={ci === accumulatedTable.columns.length - 1 ? 'tf-new-col' : 'var-cell'}
-                                                        style={ci === accumulatedTable.columns.length - 1 ? {
-                                                            fontWeight: 'bold',
-                                                            color: val ? 'var(--color-verde)' : 'var(--color-red)',
-                                                            textShadow: val
-                                                                ? '0 0 8px rgba(0,255,65,0.5)'
-                                                                : '0 0 8px rgba(255,0,64,0.5)',
-                                                            borderLeft: '2px solid rgba(0,255,255,0.3)',
-                                                        } : undefined}
-                                                    >
-                                                        {boolToChip(val)}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            )}
-
-            {/* ── GAME PLAYING ── */}
-            {(gamePhase === 'playing' || gamePhase === 'classify') && (
-                <div className="tf-main">
-                    {/* Sidebar: To-Do */}
-                    <TodoList
-                        segments={segments}
-                        activeIndex={activeSegIdx}
-                        completedSet={completedSegs}
+                        focusIndex={activeSegIdx}
+                        scrollBehavior={gamePhase === 'revealing' ? 'instant' : 'smooth'}
                     />
 
-                    {/* Center panel */}
+                    {/* Center panel — content switches by phase */}
                     <div className="tf-center">
-                        {/* Alert bar */}
-                        <AlertBar current={alertLevel} max={MAX_ALERT} />
-
-                        {/* Timer */}
-                        <HackerTimer timeLeft={timeLeft} maxTime={maxTime} />
-
-                        {/* Fórmula */}
-                        <FormulaPanel
-                            formulaStr={level.formulaStr}
-                            activeSegmentLabel={activeSegment?.label || ''}
-                            completedLabels={completedLabels}
-                        />
-
-                        {/* Mini tabla (solo en fase playing) */}
-                        {gamePhase === 'playing' && displayTableData && (
-                            <motion.div
-                                key={activeSegment.id}
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <MiniTruthTable
-                                    tableData={displayTableData}
-                                    playerAnswers={playerAnswers}
-                                    onDrop={handleCellDrop}
-                                    highlightVars={highlightVars}
+                        {/* ── Revealing animation ── */}
+                        {gamePhase === 'revealing' && accumulatedTable && (
+                            <>
+                                <FormulaPanel
+                                    formulaStr={level.formulaStr}
+                                    activeSegmentLabel=''
+                                    completedLabels={completedLabels}
                                 />
-                            </motion.div>
+                                <motion.div
+                                    className="tf-reveal-panel"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.4 }}
+                                >
+                                    <div className="tf-reveal-title">
+                                        ◈ Desencriptando bloque: <span style={{ color: 'var(--color-cyan)' }}>{revealingSegLabel}</span>
+                                    </div>
+                                    <div className="tf-reveal-bar">
+                                        <div className="tf-reveal-bar-fill" />
+                                    </div>
+                                    <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+                                        <table className="tf-truth-table">
+                                            <thead>
+                                                <tr>
+                                                    {accumulatedTable.columns.map((col, ci) => (
+                                                        <th
+                                                            key={ci}
+                                                            className={ci === accumulatedTable.columns.length - 1 ? 'result-col tf-new-col' : ''}
+                                                        >
+                                                            {col}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {accumulatedTable.rows.map((row, ri) => (
+                                                    <tr key={ri}>
+                                                        {row.map((val, ci) => (
+                                                            <td
+                                                                key={ci}
+                                                                className={ci === accumulatedTable.columns.length - 1 ? 'tf-new-col' : 'var-cell'}
+                                                                style={ci === accumulatedTable.columns.length - 1 ? {
+                                                                    fontWeight: 'bold',
+                                                                    color: val ? 'var(--color-verde)' : 'var(--color-red)',
+                                                                    textShadow: val
+                                                                        ? '0 0 8px rgba(0,255,65,0.5)'
+                                                                        : '0 0 8px rgba(255,0,64,0.5)',
+                                                                    borderLeft: '2px solid rgba(0,255,255,0.3)',
+                                                                } : undefined}
+                                                            >
+                                                                {boolToChip(val)}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </motion.div>
+                            </>
                         )}
 
-                        {/* Clasificación final — usa la tabla acumulada */}
-                        {gamePhase === 'classify' && !classifyResult && (
-                            <ClassificationPanel
-                                onClassify={handleClassify}
-                                fullTable={accumulatedTable ? {
-                                    columns: accumulatedTable.columns,
-                                    rows: accumulatedTable.rows.map((row) => ({
-                                        values: row.slice(0, -1),
-                                        result: row[row.length - 1],
-                                    })),
-                                } : null}
-                            />
-                        )}
+                        {/* ── Playing / Classify ── */}
+                        {(gamePhase === 'playing' || gamePhase === 'classify') && (
+                            <>
+                                {/* Alert bar */}
+                                <AlertBar current={alertLevel} max={MAX_ALERT} />
 
-                        {/* Feedback de clasificación */}
-                        {classifyResult && (
-                            <motion.div
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                style={{
-                                    textAlign: 'center',
-                                    padding: '1.5rem',
-                                    border: `2px solid ${classifyResult === 'correct' ? 'var(--color-verde)' : 'var(--color-red)'}`,
-                                    background: 'rgba(10,10,46,0.8)',
-                                }}
-                            >
-                                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-                                    {classifyResult === 'correct' ? '✓' : '✗'}
+                                {/* Timer */}
+                                <HackerTimer timeLeft={timeLeft} maxTime={maxTime} />
+
+                                {/* Fórmula */}
+                                <FormulaPanel
+                                    formulaStr={level.formulaStr}
+                                    activeSegmentLabel={activeSegment?.label || ''}
+                                    completedLabels={completedLabels}
+                                    activeOperands={highlightVars}
+                                />
+
+                                {/* Mini tabla (solo en fase playing) */}
+                                {gamePhase === 'playing' && displayTableData && (
+                                    <motion.div
+                                        key={activeSegment.id}
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <MiniTruthTable
+                                            tableData={displayTableData}
+                                            playerAnswers={playerAnswers}
+                                            onDrop={handleCellDrop}
+                                            highlightVars={highlightVars}
+                                        />
+                                    </motion.div>
+                                )}
+
+                                {/* Clasificación final — usa la tabla acumulada */}
+                                {gamePhase === 'classify' && !classifyResult && (
+                                    <ClassificationPanel
+                                        onClassify={handleClassify}
+                                        fullTable={accumulatedTable ? {
+                                            columns: accumulatedTable.columns,
+                                            rows: accumulatedTable.rows.map((row) => ({
+                                                values: row.slice(0, -1),
+                                                result: row[row.length - 1],
+                                            })),
+                                        } : null}
+                                    />
+                                )}
+
+                                {/* Feedback de clasificación */}
+                                {classifyResult && (
+                                    <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        style={{
+                                            textAlign: 'center',
+                                            padding: '1.5rem',
+                                            border: `2px solid ${classifyResult === 'correct' ? 'var(--color-verde)' : 'var(--color-red)'}`,
+                                            background: 'rgba(10,10,46,0.8)',
+                                        }}
+                                    >
+                                        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+                                            {classifyResult === 'correct' ? '✓' : '✗'}
+                                        </div>
+                                        <p style={{
+                                            fontFamily: "'Orbitron'",
+                                            fontSize: '1rem',
+                                            color: classifyResult === 'correct' ? 'var(--color-verde)' : 'var(--color-red)',
+                                            textShadow: classifyResult === 'correct'
+                                                ? '0 0 10px rgba(0,255,65,0.6)'
+                                                : '0 0 10px rgba(255,0,64,0.6)',
+                                        }}>
+                                            {classifyResult === 'correct'
+                                                ? '¡CLASIFICACIÓN CORRECTA!'
+                                                : `INCORRECTO — Era: ${level.classification}`}
+                                        </p>
+                                    </motion.div>
+                                )}
+
+                                {/* Exit button */}
+                                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+                                    <button
+                                        className="tf-neon-btn sm magenta"
+                                        onClick={handleExit}
+                                    >
+                                        SALIR
+                                    </button>
                                 </div>
-                                <p style={{
-                                    fontFamily: "'Orbitron'",
-                                    fontSize: '1rem',
-                                    color: classifyResult === 'correct' ? 'var(--color-verde)' : 'var(--color-red)',
-                                    textShadow: classifyResult === 'correct'
-                                        ? '0 0 10px rgba(0,255,65,0.6)'
-                                        : '0 0 10px rgba(255,0,64,0.6)',
-                                }}>
-                                    {classifyResult === 'correct'
-                                        ? '¡CLASIFICACIÓN CORRECTA!'
-                                        : `INCORRECTO — Era: ${level.classification}`}
-                                </p>
-                            </motion.div>
+                            </>
                         )}
-
-                        {/* Exit button */}
-                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
-                            <button
-                                className="tf-neon-btn sm magenta"
-                                onClick={handleExit}
-                            >
-                                SALIR
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}

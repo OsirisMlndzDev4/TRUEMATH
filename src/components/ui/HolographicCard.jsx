@@ -23,7 +23,7 @@ export default function HolographicCard({ children, color = 'cyan', className = 
                 background: 'linear-gradient(135deg, #0A0A2E 0%, #0D0D35 50%, #0A0A2E 100%)',
                 border: `1px solid ${borderColor}`,
                 boxShadow: `0 0 10px ${shadowColor}, 0 0 20px ${shadowColor}, inset 0 0 20px rgba(0,0,0,0.5)`,
-                padding: '1.5rem',
+                padding: 'clamp(0.85rem, 3vw, 1.5rem)',
             }}
         >
             {children}

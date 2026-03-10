@@ -29,7 +29,7 @@ export default function ExerciseBanner({ sentence, variables, exerciseNum, total
 
             {/* Sentence */}
             <div
-                className="p-5 mb-4"
+                className="p-3 sm:p-5 mb-3 sm:mb-4"
                 style={{
                     background: 'linear-gradient(135deg, #0A0A2E, #0D0D35)',
                     border: '1px solid rgba(0,255,65,0.3)',
@@ -40,7 +40,7 @@ export default function ExerciseBanner({ sentence, variables, exerciseNum, total
                     style={{ fontFamily: "'Orbitron'", textShadow: '0 0 6px rgba(0,255,65,0.4)' }}>
                     Traduce a fórmula:
                 </p>
-                <p className="text-xl md:text-2xl text-white leading-relaxed"
+                <p className="text-base sm:text-xl md:text-2xl text-white leading-relaxed"
                     style={{ fontFamily: "'Share Tech Mono', monospace" }}>
                     "{sentence}"
                 </p>

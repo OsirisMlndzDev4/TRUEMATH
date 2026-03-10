@@ -201,3 +201,14 @@ h6 {
     transform: rotate(360deg);
   }
 }
+
+/* ─── MOBILE RESPONSIVE GLOBALS ─── */
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.35rem; }
+  h3 { font-size: 1.1rem; }
+}

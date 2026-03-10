@@ -60,7 +60,7 @@ export default function SyntaxDifficultyScreen() {
             <BinaryBackground />
 
             <motion.div
-                className="relative z-10 flex flex-col items-center gap-10 px-4 w-full max-w-2xl"
+                className="relative z-10 flex flex-col items-center gap-6 sm:gap-10 px-3 sm:px-4 w-full max-w-2xl"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -77,7 +77,7 @@ export default function SyntaxDifficultyScreen() {
                         MÓDULO 1 // SYNTAX NODE
                     </p>
                     <motion.h1
-                        className="text-4xl md:text-5xl font-black"
+                        className="text-2xl sm:text-4xl md:text-5xl font-black"
                         style={{
                             fontFamily: "'Orbitron', sans-serif",
                             color: '#00FF41',
@@ -90,7 +90,7 @@ export default function SyntaxDifficultyScreen() {
                         SELECCIONA
                     </motion.h1>
                     <motion.h2
-                        className="text-2xl md:text-3xl font-black mt-1"
+                        className="text-xl sm:text-2xl md:text-3xl font-black mt-1"
                         style={{
                             fontFamily: "'Orbitron', sans-serif",
                             color: '#00FFFF',
@@ -105,7 +105,7 @@ export default function SyntaxDifficultyScreen() {
                 </div>
 
                 {/* Difficulty cards */}
-                <div className="flex flex-col gap-4 w-full">
+                <div className="flex flex-col gap-3 sm:gap-4 w-full">
                     {DIFFICULTIES.map((diff, i) => (
                         <motion.button
                             key={diff.key}
@@ -115,7 +115,7 @@ export default function SyntaxDifficultyScreen() {
                             transition={{ delay: 0.4 + i * 0.1 }}
                             whileHover={{ scale: 1.02, x: 6 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full flex items-center gap-5 px-6 py-5 text-left cursor-pointer"
+                            className="w-full flex items-center gap-3 sm:gap-5 px-4 py-3.5 sm:px-6 sm:py-5 text-left cursor-pointer"
                             style={{
                                 background: diff.bg,
                                 border: `1px solid ${diff.border}`,
@@ -125,7 +125,7 @@ export default function SyntaxDifficultyScreen() {
                         >
                             {/* Icon */}
                             <span
-                                className="text-4xl flex-shrink-0"
+                                className="text-2xl sm:text-4xl flex-shrink-0"
                                 style={{
                                     color: diff.color,
                                     textShadow: `0 0 12px ${diff.shadow}`,
@@ -137,7 +137,7 @@ export default function SyntaxDifficultyScreen() {
                             {/* Text */}
                             <div className="flex-1">
                                 <p
-                                    className="text-xl font-black mb-1"
+                                    className="text-base sm:text-xl font-black mb-1"
                                     style={{
                                         fontFamily: "'Orbitron', sans-serif",
                                         color: diff.color,

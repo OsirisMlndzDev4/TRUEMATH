@@ -159,6 +159,7 @@ export default function SyntaxNodeGame() {
     const handleRetry = useCallback(() => {
         setFeedback(null)
         setTokens([])
+        setTimeLeft(MAX_TIME)
     }, [])
 
     const handleNext = useCallback(() => {
@@ -181,17 +182,17 @@ export default function SyntaxNodeGame() {
 
     return (
         <motion.div
-            className="min-h-screen py-6 px-4 flex flex-col items-center"
+            className="min-h-screen py-4 sm:py-6 px-3 sm:px-4 flex flex-col items-center"
             style={{ background: '#050510' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
             {/* Header */}
-            <div className="w-full max-w-2xl flex justify-between items-center mb-6">
+            <div className="w-full max-w-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
                 <div>
                     <h2
-                        className="text-2xl md:text-3xl font-black text-[#00FF41] text-glow-verde"
+                        className="text-xl sm:text-2xl md:text-3xl font-black text-[#00FF41] text-glow-verde"
                         style={{ fontFamily: "'Orbitron', sans-serif" }}
                     >
                         SYNTAX NODE
@@ -210,7 +211,7 @@ export default function SyntaxNodeGame() {
                         </span>
                     </p>
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 sm:gap-6">
                     {/* ⚠️ DEV_MODE — Eliminar este bloque para producción */}
                     {DEV_MODE && (
                         <button
@@ -242,7 +243,7 @@ export default function SyntaxNodeGame() {
                             TIEMPO
                         </span>
                         <span
-                            className="text-3xl font-bold font-[Orbitron]"
+                            className="text-2xl sm:text-3xl font-bold font-[Orbitron]"
                             style={{
                                 color: timerColor,
                                 textShadow: `0 0 12px ${timerColor}80, 0 0 24px ${timerColor}40`,
@@ -313,7 +314,7 @@ export default function SyntaxNodeGame() {
                     >
                         {feedback.type === 'correct' ? (
                             <motion.div
-                                className="flex flex-col items-center gap-4 p-10"
+                                className="flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-10"
                                 initial={{ scale: 0.5 }}
                                 animate={{ scale: 1.1 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 12 }}
@@ -323,8 +324,8 @@ export default function SyntaxNodeGame() {
                                     boxShadow: '0 0 30px rgba(0,255,65,0.4), 0 0 60px rgba(0,255,65,0.2)',
                                 }}
                             >
-                                <span className="text-5xl">✓</span>
-                                <p className="text-3xl font-black text-[#00FF41] text-glow-verde"
+                                <span className="text-3xl sm:text-5xl">✓</span>
+                                <p className="text-xl sm:text-3xl font-black text-[#00FF41] text-glow-verde"
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     CORRECTO
                                 </p>
@@ -344,7 +345,7 @@ export default function SyntaxNodeGame() {
                             </motion.div>
                         ) : feedback.type === 'timeout' ? (
                             <motion.div
-                                className="flex flex-col items-center gap-4 p-10"
+                                className="flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-10"
                                 initial={{ scale: 0.5 }}
                                 animate={{ scale: 1.1 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 12 }}
@@ -354,8 +355,8 @@ export default function SyntaxNodeGame() {
                                     boxShadow: '0 0 30px rgba(255,0,64,0.4), 0 0 60px rgba(255,0,64,0.2)',
                                 }}
                             >
-                                <span className="text-5xl">⏰</span>
-                                <p className="text-2xl font-black text-[#FF0040]"
+                                <span className="text-3xl sm:text-5xl">⏰</span>
+                                <p className="text-xl sm:text-2xl font-black text-[#FF0040]"
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     TIEMPO AGOTADO
                                 </p>
@@ -368,7 +369,7 @@ export default function SyntaxNodeGame() {
                             </motion.div>
                         ) : (
                             <motion.div
-                                className="flex flex-col items-center gap-4 p-10 max-w-md"
+                                className="flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-10 max-w-md"
                                 initial={{ x: -20 }}
                                 animate={{ x: [0, -10, 10, -10, 10, 0] }}
                                 transition={{ duration: 0.5 }}
@@ -378,8 +379,8 @@ export default function SyntaxNodeGame() {
                                     boxShadow: '0 0 30px rgba(255,0,64,0.4)',
                                 }}
                             >
-                                <span className="text-5xl">✗</span>
-                                <p className="text-2xl font-black text-[#FF0040]"
+                                <span className="text-3xl sm:text-5xl">✗</span>
+                                <p className="text-xl sm:text-2xl font-black text-[#FF0040]"
                                     style={{ fontFamily: "'Orbitron'" }}>
                                     INCORRECTO
                                 </p>

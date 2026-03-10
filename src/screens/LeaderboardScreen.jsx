@@ -47,7 +47,7 @@ export default function LeaderboardScreen() {
 
     return (
         <motion.div
-            className="min-h-screen flex flex-col items-center py-8 px-4"
+            className="min-h-screen flex flex-col items-center py-4 sm:py-8 px-3 sm:px-4"
             style={{ background: '#050510' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -55,19 +55,19 @@ export default function LeaderboardScreen() {
         >
             {/* Title */}
             <h1
-                className="text-3xl md:text-5xl font-black text-[#00FFFF] text-glow-cyan mb-8"
+                className="text-2xl sm:text-3xl md:text-5xl font-black text-[#00FFFF] text-glow-cyan mb-4 sm:mb-8"
                 style={{ fontFamily: "'Orbitron', sans-serif" }}
             >
                 🏆 HALL OF LOGIC
             </h1>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-8 flex-wrap justify-center">
+            <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-8 flex-wrap justify-center">
                 {TABS.map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className="px-4 py-2 text-xs font-bold tracking-wider uppercase cursor-pointer transition-all duration-200"
+                        className="px-2.5 py-1.5 sm:px-4 sm:py-2 text-[0.6rem] sm:text-xs font-bold tracking-wider uppercase cursor-pointer transition-all duration-200"
                         style={{
                             fontFamily: "'Orbitron', sans-serif",
                             background: activeTab === tab.key ? `${tab.color}15` : 'transparent',
@@ -83,9 +83,9 @@ export default function LeaderboardScreen() {
             </div>
 
             {/* Table */}
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-2xl overflow-x-auto">
                 <div
-                    className="w-full scanline-overlay"
+                    className="w-full scanline-overlay min-w-[320px]"
                     style={{
                         background: '#0A0A2E',
                         border: '1px solid rgba(0,255,255,0.2)',
@@ -94,9 +94,9 @@ export default function LeaderboardScreen() {
                 >
                     {/* Header */}
                     <div
-                        className="grid gap-2 px-4 py-3 text-xs tracking-widest uppercase"
+                        className="grid gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-[0.6rem] sm:text-xs tracking-widest uppercase"
                         style={{
-                            gridTemplateColumns: activeTab === 'all' ? '50px 1fr 80px 80px 100px' : '50px 1fr 80px 100px',
+                            gridTemplateColumns: activeTab === 'all' ? '24px 1fr 45px 45px 75px' : '24px 1fr 50px 75px',
                             fontFamily: "'Orbitron', sans-serif",
                             borderBottom: '1px solid rgba(0,255,255,0.2)',
                             color: '#00FFFF80',
@@ -105,7 +105,7 @@ export default function LeaderboardScreen() {
                         <span>#</span>
                         <span>Nombre</span>
                         <span className="text-right">Score</span>
-                        {activeTab === 'all' && <span className="text-center">Módulo</span>}
+                        {activeTab === 'all' && <span className="text-center">Mod</span>}
                         <span className="text-right">Fecha</span>
                     </div>
 
@@ -139,9 +139,9 @@ export default function LeaderboardScreen() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className="grid gap-2 px-4 py-3 text-sm items-center"
+                                            className="grid gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm items-center"
                                             style={{
-                                                gridTemplateColumns: activeTab === 'all' ? '50px 1fr 80px 80px 100px' : '50px 1fr 80px 100px',
+                                                gridTemplateColumns: activeTab === 'all' ? '24px 1fr 45px 45px 75px' : '24px 1fr 50px 75px',
                                                 fontFamily: "'Share Tech Mono', monospace",
                                                 borderBottom: '1px solid rgba(255,255,255,0.05)',
                                                 color: rankStyle ? rankStyle.color : '#ffffffCC',
@@ -152,11 +152,11 @@ export default function LeaderboardScreen() {
                                             <span className="truncate">{entry.name}</span>
                                             <span className="text-right font-bold">{entry.score}</span>
                                             {activeTab === 'all' && (
-                                                <span className="text-center text-xs opacity-60">
+                                                <span className="text-center text-[0.6rem] sm:text-xs opacity-60">
                                                     {MODULE_LABELS[entry.module] || entry.module}
                                                 </span>
                                             )}
-                                            <span className="text-right text-xs opacity-50">{dateLabel}</span>
+                                            <span className="text-right text-[0.6rem] sm:text-xs opacity-50">{dateLabel}</span>
                                         </motion.div>
                                     )
                                 })

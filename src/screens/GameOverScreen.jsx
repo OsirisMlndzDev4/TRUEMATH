@@ -75,14 +75,14 @@ export default function GameOverScreen() {
             transition={{ duration: 0.6 }}
         >
             <motion.div
-                className="flex flex-col items-center gap-8 max-w-md w-full"
+                className="flex flex-col items-center gap-5 sm:gap-8 max-w-md w-full"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
             >
                 {/* Title */}
                 <h1
-                    className="text-3xl md:text-4xl font-black text-[#00FFFF] text-glow-cyan"
+                    className="text-2xl sm:text-3xl md:text-4xl font-black text-[#00FFFF] text-glow-cyan"
                     style={{ fontFamily: "'Orbitron', sans-serif" }}
                 >
                     GAME OVER
@@ -95,7 +95,7 @@ export default function GameOverScreen() {
                         Puntuación Final
                     </p>
                     <motion.p
-                        className="text-6xl md:text-7xl font-black"
+                        className="text-4xl sm:text-6xl md:text-7xl font-black"
                         style={{
                             fontFamily: "'Orbitron', sans-serif",
                             color: grade.color,
