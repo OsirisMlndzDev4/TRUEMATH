@@ -48,12 +48,16 @@ export default function GameOverScreen() {
             return
         }
         setNameError('')
-        await saveScore(currentModule, {
+        const ok = await saveScore(currentModule, {
             name: upperName,
             score,
             difficulty: selectedDifficulty || null,
         })
         setSaving(false)
+        if (!ok) {
+            setNameError('Error al guardar. Intenta de nuevo.')
+            return
+        }
         setSaved(true)
         setTimeout(() => navigate('/leaderboard'), 800)
     }

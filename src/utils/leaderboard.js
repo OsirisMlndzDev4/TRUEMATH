@@ -53,9 +53,18 @@ export const checkNameExists = async (module, name) => {
  * @returns {Promise<boolean>} true si se guardó correctamente
  */
 export const saveScore = async (module, entry) => {
-    if (!VALID_MODULES.includes(module)) return false
-    if (typeof entry.score !== 'number' || entry.score < 0 || entry.score > MAX_SCORE) return false
-    if (!entry.name || entry.name.length > MAX_NAME_LEN || !NAME_RE.test(entry.name)) return false
+    if (!VALID_MODULES.includes(module)) {
+        console.warn('[saveScore] Módulo inválido:', module)
+        return false
+    }
+    if (typeof entry.score !== 'number' || entry.score < 0 || entry.score > MAX_SCORE) {
+        console.warn('[saveScore] Score inválido:', entry.score, typeof entry.score)
+        return false
+    }
+    if (!entry.name || entry.name.length > MAX_NAME_LEN || !NAME_RE.test(entry.name)) {
+        console.warn('[saveScore] Nombre inválido:', JSON.stringify(entry.name), '| len:', entry.name?.length, '| regex:', NAME_RE.test(entry.name || ''))
+        return false
+    }
 
     const row = {
         name: entry.name,
@@ -66,14 +75,17 @@ export const saveScore = async (module, entry) => {
         row.difficulty = entry.difficulty
     }
 
+    console.log('[saveScore] Insertando:', row)
+
     const { error } = await supabase
         .from('scores')
         .insert(row)
 
     if (error) {
-        console.error('Error saving score:', error)
+        console.error('[saveScore] Error de Supabase:', error)
         return false
     }
+    console.log('[saveScore] Guardado exitosamente')
     return true
 }
 
