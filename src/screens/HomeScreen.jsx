@@ -33,7 +33,9 @@ const BOOT_LINES = [
     { t: '$ launching truemath-interface...', d: 650 },
 ]
 
-const BOOT_TOTAL = BOOT_LINES[BOOT_LINES.length - 1].d + 250
+const BOOT_TOTAL = BOOT_LINES[BOOT_LINES.length - 1].d + 100
+
+let hasBooted = false
 
 /* ── Terminal boot sequence ── */
 function BootSequence({ onComplete }) {
@@ -158,7 +160,7 @@ function WireframeCube() {
 export default function HomeScreen() {
     const navigate = useNavigate()
     const startGame = useGameStore((s) => s.startGame)
-    const [phase, setPhase] = useState('gate') // 'gate' | 'boot' | 'blackout' | 'intro' | 'ready'
+    const [phase, setPhase] = useState(hasBooted ? 'ready' : 'gate')
 
     const handleEnter = useCallback(() => {
         if (phase !== 'gate') return
@@ -170,7 +172,10 @@ export default function HomeScreen() {
         setTimeout(() => {
             setPhase('intro')
             playNeonFlicker(INTRO_MS)
-            setTimeout(() => setPhase('ready'), INTRO_MS)
+            setTimeout(() => {
+                hasBooted = true
+                setPhase('ready')
+            }, INTRO_MS)
         }, 600)
     }, [])
 
