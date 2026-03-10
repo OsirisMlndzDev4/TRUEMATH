@@ -5,10 +5,10 @@
  *  paso a paso aplicando ingeniería inversa.
  * ═══════════════════════════════════════════════════════
  */
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { finderLevels } from '../../data/finderLevels'
+import { finderLevelsByDifficulty, finderLevels as allFinderLevels } from '../../data/finderLevels'
 import {
     generateCombinations,
     generateSegmentTable,
@@ -504,6 +504,15 @@ function ClassificationPanel({ onClassify, fullTable }) {
    ══════════════════════════════════════════ */
 export default function TruthFinderGame() {
     const navigate = useNavigate()
+    const { difficulty } = useParams()
+
+    // Filtrar niveles por dificultad seleccionada
+    const finderLevels = useMemo(() => {
+        if (difficulty && finderLevelsByDifficulty[difficulty]) {
+            return finderLevelsByDifficulty[difficulty]
+        }
+        return allFinderLevels
+    }, [difficulty])
 
     // ── Estado del juego ──
     const [currentLevelIdx, setCurrentLevelIdx] = useState(0)
@@ -762,7 +771,7 @@ export default function TruthFinderGame() {
 
     /** Salir al home */
     const handleExit = useCallback(() => {
-        navigate('/')
+        navigate('/finder')
     }, [navigate])
 
     // Labels de segmentos ya resueltos (para el highlight de la fórmula)

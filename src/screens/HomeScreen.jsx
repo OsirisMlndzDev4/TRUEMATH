@@ -66,8 +66,7 @@ export default function HomeScreen() {
     const handleModule = (module) => {
         if (module === 'syntax') {
             navigate('/syntax-difficulty')
-        } else {
-            startGame(module)
+        } else if (module === 'finder') {
             navigate('/finder')
         }
     }
