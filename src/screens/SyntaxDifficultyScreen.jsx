@@ -1,44 +1,51 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import BinaryBackground from '../components/ui/BinaryBackground'
-import NeonButton from '../components/ui/NeonButton'
 import useGameStore from '../store/useGameStore'
+import '../components/finder/FinderDifficultySelect.css'
 
 const DIFFICULTIES = [
     {
         key: 'facil',
         label: 'FÁCIL',
         color: '#00FF41',
-        shadow: 'rgba(0,255,65,0.4)',
-        border: 'rgba(0,255,65,0.6)',
-        bg: 'rgba(0,255,65,0.05)',
-        icon: '◈',
+        shadow: 'rgba(0, 255, 65, 0.4)',
         desc: 'Fórmulas simples: ∧, ∨, ¬, →',
-        count: 12,
+        detail: '1–2 variables · Operadores básicos',
+        levels: 10,
     },
     {
         key: 'medio',
         label: 'MEDIO',
         color: '#FFD700',
-        shadow: 'rgba(255,215,0,0.4)',
-        border: 'rgba(255,215,0,0.6)',
-        bg: 'rgba(255,215,0,0.05)',
-        icon: '◉',
+        shadow: 'rgba(255, 215, 0, 0.4)',
         desc: 'Paréntesis, ↔ y negaciones compuestas',
-        count: 12,
+        detail: '2–3 variables · Agrupación y bicondicional',
+        levels: 15,
     },
     {
         key: 'dificil',
         label: 'DIFÍCIL',
         color: '#FF0040',
-        shadow: 'rgba(255,0,64,0.4)',
-        border: 'rgba(255,0,64,0.6)',
-        bg: 'rgba(255,0,64,0.05)',
-        icon: '◆',
+        shadow: 'rgba(255, 0, 64, 0.4)',
         desc: 'Fórmulas complejas con múltiples operadores',
-        count: 12,
+        detail: '3–4 variables · Máxima complejidad',
+        levels: 12,
     },
 ]
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.12, delayChildren: 0.3 },
+    },
+}
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 },
+}
 
 export default function SyntaxDifficultyScreen() {
     const navigate = useNavigate()
@@ -56,129 +63,72 @@ export default function SyntaxDifficultyScreen() {
     }
 
     return (
-        <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+        <motion.div
+            className="fds-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+        >
             <BinaryBackground />
+            <div className="fds-scanlines" />
 
+            {/* Header */}
             <motion.div
-                className="relative z-10 flex flex-col items-center gap-6 sm:gap-10 px-3 sm:px-4 w-full max-w-2xl"
-                initial={{ opacity: 0, y: 30 }}
+                className="fds-header"
+                initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
             >
-                {/* Header */}
-                <div className="text-center">
-                    <p
-                        className="text-xs tracking-[0.4em] uppercase mb-2"
-                        style={{
-                            fontFamily: "'Share Tech Mono', monospace",
-                            color: 'rgba(0,255,65,0.6)',
-                        }}
-                    >
-                        MÓDULO 1 // SYNTAX NODE
-                    </p>
-                    <motion.h1
-                        className="text-2xl sm:text-4xl md:text-5xl font-black"
-                        style={{
-                            fontFamily: "'Orbitron', sans-serif",
-                            color: '#00FF41',
-                            textShadow: '0 0 20px rgba(0,255,65,0.6), 0 0 40px rgba(0,255,65,0.3)',
-                        }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        SELECCIONA
-                    </motion.h1>
-                    <motion.h2
-                        className="text-xl sm:text-2xl md:text-3xl font-black mt-1"
-                        style={{
-                            fontFamily: "'Orbitron', sans-serif",
-                            color: '#00FFFF',
-                            textShadow: '0 0 15px rgba(0,255,255,0.5)',
-                        }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        DIFICULTAD
-                    </motion.h2>
-                </div>
-
-                {/* Difficulty cards */}
-                <div className="flex flex-col gap-3 sm:gap-4 w-full">
-                    {DIFFICULTIES.map((diff, i) => (
-                        <motion.button
-                            key={diff.key}
-                            onClick={() => handleSelect(diff.key)}
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4 + i * 0.1 }}
-                            whileHover={{ scale: 1.02, x: 6 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full flex items-center gap-3 sm:gap-5 px-4 py-3.5 sm:px-6 sm:py-5 text-left cursor-pointer"
-                            style={{
-                                background: diff.bg,
-                                border: `1px solid ${diff.border}`,
-                                boxShadow: `0 0 20px ${diff.shadow}, inset 0 0 20px rgba(0,0,0,0.3)`,
-                                transition: 'all 0.2s ease',
-                            }}
-                        >
-                            {/* Icon */}
-                            <span
-                                className="text-2xl sm:text-4xl flex-shrink-0"
-                                style={{
-                                    color: diff.color,
-                                    textShadow: `0 0 12px ${diff.shadow}`,
-                                }}
-                            >
-                                {diff.icon}
-                            </span>
-
-                            {/* Text */}
-                            <div className="flex-1">
-                                <p
-                                    className="text-base sm:text-xl font-black mb-1"
-                                    style={{
-                                        fontFamily: "'Orbitron', sans-serif",
-                                        color: diff.color,
-                                        textShadow: `0 0 10px ${diff.shadow}`,
-                                    }}
-                                >
-                                    {diff.label}
-                                </p>
-                                <p
-                                    className="text-sm"
-                                    style={{
-                                        fontFamily: "'Share Tech Mono', monospace",
-                                        color: 'rgba(255,255,255,0.5)',
-                                    }}
-                                >
-                                    {diff.desc}
-                                </p>
-                            </div>
-
-                            {/* Arrow */}
-                            <span
-                                className="text-2xl flex-shrink-0"
-                                style={{ color: diff.color, opacity: 0.7 }}
-                            >
-                                ›
-                            </span>
-                        </motion.button>
-                    ))}
-                </div>
-
-                {/* Back button */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                >
-                    <NeonButton color="cyan" size="sm" onClick={handleBack}>
-                        ← VOLVER
-                    </NeonButton>
-                </motion.div>
+                <h1 className="fds-title" style={{ color: '#00FF41', textShadow: '0 0 10px rgba(0,255,65,0.6), 0 0 20px rgba(0,255,65,0.4), 0 0 40px rgba(0,255,65,0.2)' }}>
+                    SYNTAX NODE
+                </h1>
+                <p className="fds-subtitle">SELECCIONA NIVEL DE DIFICULTAD</p>
             </motion.div>
-        </div>
+
+            {/* Difficulty cards */}
+            <motion.div
+                className="fds-grid"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                {DIFFICULTIES.map((diff) => (
+                    <motion.button
+                        key={diff.key}
+                        className="fds-card"
+                        variants={cardVariants}
+                        whileHover={{ scale: 1.04, y: -4 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleSelect(diff.key)}
+                        style={{
+                            '--card-color': diff.color,
+                            '--card-shadow': diff.shadow,
+                        }}
+                    >
+                        <div className="fds-card-label">{diff.label}</div>
+                        <div className="fds-card-desc">{diff.desc}</div>
+                        <div className="fds-card-detail">{diff.detail}</div>
+                        <div className="fds-card-levels">
+                            <span className="fds-card-levels-num">{diff.levels}</span>
+                            <span className="fds-card-levels-text">EJERCICIOS</span>
+                        </div>
+                        <div className="fds-card-arrow">▶ INICIAR</div>
+                    </motion.button>
+                ))}
+            </motion.div>
+
+            {/* Back button */}
+            <motion.div
+                className="fds-footer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+            >
+                <button className="fds-back-btn" onClick={handleBack}>
+                    ← VOLVER AL HUB
+                </button>
+            </motion.div>
+        </motion.div>
     )
 }
