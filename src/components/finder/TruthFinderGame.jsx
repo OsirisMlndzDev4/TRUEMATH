@@ -969,26 +969,6 @@ export default function TruthFinderGame() {
         }
     }, [currentLevelIdx])
 
-    /** [DEV] Saltar nivel actual directo a levelComplete */
-    const handleDevSkip = useCallback(() => {
-        setScore((prev) => prev + 100)
-        setClassifyResult('correct')
-        setLastTimeBonus(25)
-        setGamePhase('levelComplete')
-        setCompletedSegs(new Set(segments.map((s) => s.id)))
-        setPlayerAnswers({})
-        setAlertLevel(0)
-    }, [segments])
-
-    /** [DEV] Completar todos los niveles restantes de golpe */
-    const handleDevFinish = useCallback(() => {
-        setScore((prev) => prev + (finderLevels.length - currentLevelIdx) * 100)
-        setCurrentLevelIdx(finderLevels.length - 1)
-        setClassifyResult('correct')
-        playVictory()
-        setGamePhase('allComplete')
-    }, [currentLevelIdx, finderLevels.length])
-
     /** Salir al home */
     const handleExit = useCallback(() => {
         navigate('/finder')
@@ -1220,44 +1200,9 @@ export default function TruthFinderGame() {
                         {level && ` — ${level.difficulty}`}
                     </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {/* DEV BUTTONS — QUITAR EN PRODUCCIÓN */}
-                    <div style={{ display: 'flex', gap: '0.35rem' }}>
-                        <button
-                            onClick={handleDevSkip}
-                            style={{
-                                padding: '0.3rem 0.5rem',
-                                fontSize: '0.55rem',
-                                background: 'rgba(255,0,64,0.15)',
-                                border: '1px solid #FF0040',
-                                color: '#FF0040',
-                                cursor: 'pointer',
-                                fontFamily: "'Share Tech Mono', monospace",
-                                letterSpacing: '0.05em',
-                            }}
-                        >
-                            SKIP LVL
-                        </button>
-                        <button
-                            onClick={handleDevFinish}
-                            style={{
-                                padding: '0.3rem 0.5rem',
-                                fontSize: '0.55rem',
-                                background: 'rgba(255,215,0,0.15)',
-                                border: '1px solid #FFD700',
-                                color: '#FFD700',
-                                cursor: 'pointer',
-                                fontFamily: "'Share Tech Mono', monospace",
-                                letterSpacing: '0.05em',
-                            }}
-                        >
-                            FINISH ALL
-                        </button>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <div className="tf-score-label">SCORE</div>
-                        <div className="tf-score">{score}</div>
-                    </div>
+                <div style={{ textAlign: 'right' }}>
+                    <div className="tf-score-label">SCORE</div>
+                    <div className="tf-score">{score}</div>
                 </div>
             </div>
 
