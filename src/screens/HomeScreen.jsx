@@ -33,7 +33,7 @@ const BOOT_LINES = [
     { t: '$ launching truemath-interface...', d: 650 },
 ]
 
-const BOOT_TOTAL = BOOT_LINES[BOOT_LINES.length - 1].d + 100
+const BOOT_TOTAL = BOOT_LINES[BOOT_LINES.length - 1].d + 200
 
 let hasBooted = false
 

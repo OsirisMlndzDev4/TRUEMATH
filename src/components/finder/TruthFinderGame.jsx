@@ -1019,6 +1019,7 @@ export default function TruthFinderGame() {
         await saveScore('finder', {
             name: upperName,
             score,
+            difficulty: difficulty || null,
         })
         setSaving(false)
         setSaved(true)
