@@ -204,10 +204,13 @@ export default function SyntaxNodeGame() {
     }, [])
 
     const handleNext = useCallback(() => {
+        const nextIdx = currentExerciseIndex + 1
+        const nextDiff = exercises[nextIdx]?.difficulty
+        setTimeLeft(getTimeForDifficulty(nextDiff))
         setFeedback(null)
         setTokens([])
         nextExercise()
-    }, [nextExercise])
+    }, [nextExercise, exercises, currentExerciseIndex])
 
     // Early return AFTER all hooks
     if (gameFinished || !exercise) return null

@@ -8,14 +8,14 @@ import NeonButton from '../components/ui/NeonButton'
 
 export default function GameOverScreen() {
     const navigate = useNavigate()
-    const { score, currentModule, resetGame, startGame } = useGameStore()
+    const { score, currentModule, selectedDifficulty, resetGame, startGame } = useGameStore()
     const [playerName, setPlayerName] = useState('')
     const [saved, setSaved] = useState(false)
     const [displayScore, setDisplayScore] = useState(0)
     const [nameError, setNameError] = useState('')
     const [saving, setSaving] = useState(false)
 
-    const grade = getGrade(score)
+    const grade = getGrade(score, currentModule, selectedDifficulty)
 
     // Count-up animation
     useEffect(() => {
@@ -48,6 +48,7 @@ export default function GameOverScreen() {
         await saveScore(currentModule, {
             name: upperName,
             score,
+            difficulty: selectedDifficulty || null,
         })
         setSaving(false)
         setSaved(true)
@@ -57,7 +58,7 @@ export default function GameOverScreen() {
     const MODULE_ROUTES = { syntax: '/syntax', finder: '/finder' }
 
     const handlePlayAgain = () => {
-        startGame(currentModule)
+        startGame(currentModule, selectedDifficulty)
         navigate(MODULE_ROUTES[currentModule] || '/')
     }
 

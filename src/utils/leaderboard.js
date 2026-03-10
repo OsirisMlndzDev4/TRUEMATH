@@ -47,13 +47,18 @@ export const checkNameExists = async (module, name) => {
  * @param {{ name: string, score: number }} entry
  */
 export const saveScore = async (module, entry) => {
+    const row = {
+        name: entry.name,
+        score: entry.score,
+        module,
+    }
+    if (entry.difficulty) {
+        row.difficulty = entry.difficulty
+    }
+
     const { error } = await supabase
         .from('scores')
-        .insert({
-            name: entry.name,
-            score: entry.score,
-            module,
-        })
+        .insert(row)
 
     if (error) {
         console.error('Error saving score:', error)
